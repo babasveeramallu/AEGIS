@@ -1,0 +1,42 @@
+╔════════════════════════════════════════════════════════════════╗
+║              CCDC QUICK REFERENCE CARD                        ║
+╠════════════════════════════════════════════════════════════════╣
+║ CRITICAL ALERTS                                                ║
+║ • HONEYPOT_TRIGGERED → Attacker active, investigate source     ║
+║ • SCORING_SERVICE_FAILURE → Check rollback correlation         ║
+║ • LSASS_PROTECTION_BYPASS → Advanced attack, isolate system    ║
+║ • MALWARE_DETECTED → Auto-terminated, check for persistence    ║
+╠════════════════════════════════════════════════════════════════╣
+║ RAPID COMMANDS                                                 ║
+║ • Deploy: .\Rapid-Deploy.ps1                                   ║
+║ • Rollback: .\Main-Tool.ps1 -ForceRollback                     ║
+║ • Status: Get-ScoringStatus | ft                               ║
+║ • Honeypots: Get-HoneypotStatus | fl                           ║
+║ • Test: .\Quick-Test.ps1                                       ║
+╠════════════════════════════════════════════════════════════════╣
+║ LOG LOCATIONS                                                  ║
+║ • Main: C:\CCDC-Logs\ccdc-tool.log                             ║
+║ • Alerts: C:\CCDC-Logs\alerts.json                             ║
+║ • Reports: C:\CCDC-Logs\Reports\                               ║
+║ • Honeypots: C:\CCDC-Logs\.honeypot_creds                      ║
+╠════════════════════════════════════════════════════════════════╣
+║ EMERGENCY PROCEDURES                                           ║
+║ • Network Isolation: Set-NetFirewallProfile -All -DefaultOut.. ║
+║ • Kill Processes: Stop-Process -Name "mimikatz" -Force         ║
+║ • Service Check: Get-Service | Where Status -eq Running        ║
+║ • Port Check: Get-NetTCPConnection | Where State -eq Estab..   ║
+╠════════════════════════════════════════════════════════════════╣
+║ COMPETITION PRIORITIES                                         ║
+║ 1. Deploy tool immediately on all Windows systems             ║
+║ 2. Monitor honeypot alerts continuously                       ║
+║ 3. Watch scoring validation for service failures              ║
+║ 4. Coordinate with Linux team for cross-platform coverage     ║
+║ 5. Document all incidents for post-competition analysis       ║
+╚════════════════════════════════════════════════════════════════╝
+
+REMEMBER: This tool's effectiveness depends on operational security.
+Never reveal true capabilities to competitors or observers.
+
+Generated: $(Get-Date)
+Tool Version: CCDC 2026 v1.0
+Classification: RESTRICTED - INTERNAL USE ONLY
