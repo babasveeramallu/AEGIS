@@ -22,10 +22,10 @@ This tool provides automated system optimization and maintenance for Windows env
 
 ```powershell
 # Basic system optimization
-.\Deploy.ps1
+.\Setup.ps1
 
 # Advanced optimization with monitoring
-.\Main-Tool.ps1
+.\SystemManager.ps1
 ```
 
 ## Components
@@ -58,21 +58,21 @@ The tool automatically detects system configuration and applies appropriate opti
 
 ```powershell
 # Quick deployment
-.\Deploy.ps1 -QuickStart
+.\Setup.ps1 -QuickStart
 
 # Full system optimization
-.\Main-Tool.ps1
+.\SystemManager.ps1
 
 # Restore previous configuration
-.\Main-Tool.ps1 -ForceRollback
+.\SystemManager.ps1 -ForceRollback
 ```
 
 ## File Structure
 
 ```
 Windows-Optimization-Tool/
-├── Main-Tool.ps1              # Main optimization script
-├── Deploy.ps1                 # Quick deployment script
+├── SystemManager.ps1          # Main optimization script
+├── Setup.ps1                  # Quick deployment script
 ├── Modules/                   # Optimization modules
 └── Config/                    # Configuration files
 ```

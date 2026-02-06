@@ -8,25 +8,25 @@
 ### 🚀 **Rapid Deployment**
 ```powershell
 # Primary deployment (recommended)
-.\Rapid-Deploy.ps1
+.\QuickSetup.ps1
 
 # Emergency deployment (bypasses confirmations)
-.\Rapid-Deploy.ps1 -EmergencyMode
+.\QuickSetup.ps1 -EmergencyMode
 
 # Deploy without network isolation
-.\Rapid-Deploy.ps1 -IsolateNetwork:$false
+.\QuickSetup.ps1 -IsolateNetwork:$false
 ```
 
 ### 🔧 **System Management**
 ```powershell
 # Full system deployment
-.\Main-Tool.ps1
+.\SystemManager.ps1
 
 # Force rollback (emergency)
-.\Main-Tool.ps1 -ForceRollback
+.\SystemManager.ps1 -ForceRollback
 
 # Test mode (safe)
-.\Main-Tool.ps1 -TestMode
+.\SystemManager.ps1 -TestMode
 ```
 
 ### 📊 **Monitoring & Status**
@@ -64,13 +64,13 @@ Get-HoneypotStatus | Format-List
 ### 🚨 **Emergency Response**
 ```powershell
 # Emergency network killswitch (isolate compromised system)
-.\Emergency-Killswitch.ps1
+.\Reset.ps1
 
 # Quick activation (batch file)
-KILLSWITCH.bat
+reset.bat
 
 # Restore network access
-.\Emergency-Killswitch.ps1 -Restore
+.\Reset.ps1 -Restore
 
 # Rotate KRBTGT password (Active Directory only)
 .\Rotate-KRBTGT.ps1
@@ -151,10 +151,10 @@ Based on intelligence from:
    - Run `Quick-Test.ps1` on each system
    - Verify admin privileges and PowerShell version
    - Check network connectivity baseline
-   - Print QUICK-REF.txt for reference
+   - Print notes.txt for reference
 
 2. **Rapid Deployment** (2 minutes per system)
-   - Execute `Rapid-Deploy.ps1` on all Windows systems
+   - Execute `QuickSetup.ps1` on all Windows systems
    - Monitor for HONEYPOT_TRIGGERED alerts
    - Verify scoring services remain operational
    - Document any deployment issues
@@ -174,7 +174,7 @@ Based on intelligence from:
 ### 🔄 **Emergency Rollback Procedure**
 1. Identify failing service: `Get-ScoringStatus`
 2. Check recent hardening actions for correlation
-3. Execute rollback: `Main-Tool.ps1 -ForceRollback`
+3. Execute rollback: `SystemManager.ps1 -ForceRollback`
 4. Verify service restoration
 5. Document incident for analysis
 
