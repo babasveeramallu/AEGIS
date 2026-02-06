@@ -23,10 +23,12 @@ $Global:PortData = @{}
 
 function Get-SubnetHosts {
     $localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." }).IPAddress | Select-Object -First 1
+    if (-not $localIP -or $localIP -notmatch "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
+        Write-Host "Invalid local IP detected" -ForegroundColor Red
+        return @()
+    }
     $subnet = $localIP -replace "\d+$", ""
-    
     Write-Host "Quick scanning subnet: $subnet*" -ForegroundColor Cyan
-    
     $activeHosts = @()
     1..254 | ForEach-Object {
         $ip = "$subnet$_"
@@ -35,7 +37,6 @@ function Get-SubnetHosts {
             Write-Host "  Found: $ip" -ForegroundColor Green
         }
     }
-    
     return $activeHosts
 }
 

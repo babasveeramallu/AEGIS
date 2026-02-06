@@ -47,6 +47,10 @@ function Invoke-SystemBackup {
         # 1. Windows Firewall Rules (All systems)
         Write-CCDCLog "Backing up Windows Firewall rules..." "INFO"
         $firewallBackup = "$backupDir\firewall_backup.wfw"
+        if (-not (Test-SafePath -Path $firewallBackup -AllowedBase $backupDir)) {
+            Write-CCDCLog "Invalid firewall backup path" "ERROR"
+            return $false
+        }
         netsh advfirewall export $firewallBackup | Out-Null
         if (Test-Path $firewallBackup) {
             Write-CCDCLog "Firewall rules backed up successfully" "SUCCESS"

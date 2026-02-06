@@ -155,11 +155,12 @@ function Invoke-AutoResponse {
     try {
         switch ($Action) {
             "BLOCK_SOURCE_IP" {
-                if ($Alert.SourceIP -and $Alert.SourceIP -ne '-' -and $Alert.SourceIP -ne '127.0.0.1') {
-                    $ruleName = "CCDC_BLOCK_$($Alert.SourceIP.Replace('.', '_'))"
-                    netsh advfirewall firewall add rule name=$ruleName dir=in action=block remoteip=$Alert.SourceIP
-                    Write-CCDCLog "Blocked source IP: $($Alert.SourceIP)" "SUCCESS"
-                    return "SUCCESS: Blocked IP $($Alert.SourceIP)"
+                $safeIP = Get-SafeString -Input $Alert.SourceIP
+                if ($safeIP -and $safeIP -ne '-' -and $safeIP -ne '127.0.0.1' -and $safeIP -match "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
+                    $ruleName = "BLOCK_$($safeIP.Replace('.', '_'))"
+                    netsh advfirewall firewall add rule name=$ruleName dir=in action=block remoteip=$safeIP
+                    Write-CCDCLog "Blocked source IP: $safeIP" "SUCCESS"
+                    return "SUCCESS: Blocked IP $safeIP"
                 } else {
                     return "SKIPPED: Invalid or local IP address"
                 }
@@ -167,11 +168,10 @@ function Invoke-AutoResponse {
             
             "KILL_PROCESS" {
                 if ($Alert.ProcessId) {
-                    try {
-                        Stop-Process -Id $Alert.ProcessId -Force
+                    if (Stop-ProcessSafe -Id $Alert.ProcessId -Name ($Alert.ProcessName -replace '[^\w\-\.]', '')) {
                         Write-CCDCLog "Killed suspicious process: $($Alert.ProcessId)" "SUCCESS"
                         return "SUCCESS: Process $($Alert.ProcessId) terminated"
-                    } catch {
+                    } else {
                         return "FAILED: Could not terminate process $($Alert.ProcessId)"
                     }
                 } else {
