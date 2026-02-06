@@ -1,8 +1,7 @@
-# CCDC 2026 Adaptive Hardening & Detection Tool
+# AEGIS - Adaptive Enterprise Guardian & Intrusion Shield
 # Configuration and Reference Data
 
-# Competition-Day Checklist (Enhanced with Professor Recommendations)
-$Global:CompetitionChecklist = @(
+$Global:SecurityChecklist = @(
     @{ ID = 1; Task = "Phase 0 ran — system profile generated for all 4 Windows machines"; Status = $false },
     @{ ID = 2; Task = "Phase 0.5 ran — backups completed for all systems before any changes"; Status = $false },
     @{ ID = 3; Task = "SMBv1 disabled on AD/DNS, Web, FTP, and Workstation"; Status = $false },

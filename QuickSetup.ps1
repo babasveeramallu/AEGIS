@@ -293,8 +293,8 @@ function Start-RapidDeployment {
     
     Write-Host @"
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                         RAPID SECURITY DEPLOYMENT                           ║
-║                            Competition Mode                                  ║
+║                         AEGIS RAPID DEPLOYMENT                              ║
+║                            Emergency Mode                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 "@ -ForegroundColor Red
     

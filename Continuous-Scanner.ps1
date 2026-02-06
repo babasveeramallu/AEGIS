@@ -46,7 +46,7 @@ function Show-PortDashboard {
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     
     Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║              CCDC NETWORK PORT MONITOR - LIVE DASHBOARD                      ║" -ForegroundColor Cyan
+    Write-Host "║              AEGIS NETWORK PORT MONITOR - LIVE DASHBOARD                      ║" -ForegroundColor Cyan
     Write-Host "║                         $timestamp                                ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""

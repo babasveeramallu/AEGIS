@@ -156,8 +156,8 @@ function Start-DeploymentWizard {
     Write-Host @"
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                    CCDC 2026 Adaptive Hardening & Detection Tool            ║
-║                              Quick Deployment Script                         ║
+║                    AEGIS - Enterprise Security Platform                     ║
+║                              Deployment Wizard                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 "@ -ForegroundColor Cyan

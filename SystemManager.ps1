@@ -1,10 +1,10 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Windows System Manager
+    AEGIS - Adaptive Enterprise Guardian & Intrusion Shield
 
 .DESCRIPTION
-    System configuration and monitoring tool
+    Enterprise security automation platform
 
 .AUTHOR
     Baba
@@ -45,7 +45,7 @@ function Write-CCDCLog {
 }
 
 function Initialize-Tool {
-    Write-CCDCLog "System Manager v$Global:ToolVersion" "SUCCESS"
+    Write-CCDCLog "AEGIS v$Global:ToolVersion" "SUCCESS"
     @($Global:BackupPath, $Global:LogPath, "$ModulePath\Config", "$ModulePath\Reports") | ForEach-Object {
         if (!(Test-Path $_)) { New-Item -Path $_ -ItemType Directory -Force | Out-Null }
     }
