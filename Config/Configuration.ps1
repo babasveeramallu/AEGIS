@@ -2,8 +2,8 @@
 # Configuration and Reference Data
 
 $Global:SecurityChecklist = @(
-    @{ ID = 1; Task = "Phase 0 ran — system profile generated for all 4 Windows machines"; Status = $false },
-    @{ ID = 2; Task = "Phase 0.5 ran — backups completed for all systems before any changes"; Status = $false },
+    @{ ID = 1; Task = "Phase 0 ran - system profile generated for all 4 Windows machines"; Status = $false },
+    @{ ID = 2; Task = "Phase 0.5 ran - backups completed for all systems before any changes"; Status = $false },
     @{ ID = 3; Task = "SMBv1 disabled on AD/DNS, Web, FTP, and Workstation"; Status = $false },
     @{ ID = 4; Task = "LLMNR and NBT-NS disabled on all machines"; Status = $false },
     @{ ID = 5; Task = "LDAP signing and channel binding enforced on AD"; Status = $false },
@@ -14,16 +14,16 @@ $Global:SecurityChecklist = @(
     @{ ID = 10; Task = "FTP hardened: anonymous off, FTPS on, users chrooted, logging on"; Status = $false },
     @{ ID = 11; Task = "AD hardened: password policy, admin renamed, audit on, KRBTGT rotation noted"; Status = $false },
     @{ ID = 12; Task = "Windows Defender active and exclusion list verified on workstation"; Status = $false },
-    @{ ID = 13; Task = "Honeypot account created — monitoring for any logon"; Status = $false },
-    @{ ID = 14; Task = "Canary file planted — audit enabled"; Status = $false },
+    @{ ID = 13; Task = "Honeypot account created - monitoring for any logon"; Status = $false },
+    @{ ID = 14; Task = "Canary file planted - audit enabled"; Status = $false },
     @{ ID = 15; Task = "Detection running: cred abuse, lateral move, persist, LOLBin, firewall tamper watches on"; Status = $false },
     @{ ID = 16; Task = "Time drift monitoring active on all machines"; Status = $false },
     @{ ID = 17; Task = "Certificate expiry monitoring active"; Status = $false },
     @{ ID = 18; Task = "Splunk forwarder confirmed active (if reachable)"; Status = $false },
-    @{ ID = 19; Task = "Phase 5 scoring loop running — HTTP, HTTPS, DNS, SMTP, POP3, FTP all green"; Status = $false },
-    @{ ID = 20; Task = "IR report template loaded — can export PDF in under 2 minutes"; Status = $false },
+    @{ ID = 19; Task = "Phase 5 scoring loop running - HTTP, HTTPS, DNS, SMTP, POP3, FTP all green"; Status = $false },
+    @{ ID = 20; Task = "IR report template loaded - can export PDF in under 2 minutes"; Status = $false },
     @{ ID = 21; Task = "ICMP is open on all machines"; Status = $false },
-    @{ ID = 22; Task = "Cross-platform monitoring active — watching for lateral move to Linux / appliances"; Status = $false },
+    @{ ID = 22; Task = "Cross-platform monitoring active - watching for lateral move to Linux / appliances"; Status = $false },
     
     # ENHANCED SECURITY CONTROLS (Professor Recommendations)
     @{ ID = 23; Task = "LSASS protected process enabled (RunAsPPL)"; Status = $false },
@@ -48,7 +48,7 @@ $Global:CriticalEventIDs = @{
     4634 = @{ Log = "Security"; Description = "Logoff"; Relevance = "Session tracking and gaps" }
     4648 = @{ Log = "Security"; Description = "Explicit Credential Logon"; Relevance = "Pass-the-Hash / Pass-the-Ticket" }
     4662 = @{ Log = "Security"; Description = "Object Access on AD Object"; Relevance = "DCSync detection" }
-    4672 = @{ Log = "Security"; Description = "Special Privileges Assigned"; Relevance = "Admin access — should be rare" }
+    4672 = @{ Log = "Security"; Description = "Special Privileges Assigned"; Relevance = "Admin access - should be rare" }
     4697 = @{ Log = "Security"; Description = "Service Installed"; Relevance = "Backdoor service persistence" }
     4698 = @{ Log = "Security"; Description = "Scheduled Task Created"; Relevance = "Task-based persistence" }
     4702 = @{ Log = "Security"; Description = "Scheduled Task Modified"; Relevance = "Tampered existing task" }
@@ -100,14 +100,14 @@ $Global:PlaybookRouting = @{
 # Response Tier Mapping
 $Global:ResponseTiers = @{
     # AUTO Tier - Safe and reversible actions
-    "KILL_PROCESS" = @{ Tier = "AUTO"; Reason = "Safe — process is logged and dead, nothing else changes" }
-    "BLOCK_SOURCE_IP" = @{ Tier = "AUTO"; Reason = "Safe — inbound block only, reversible via rollback" }
+    "KILL_PROCESS" = @{ Tier = "AUTO"; Reason = "Safe - process is logged and dead, nothing else changes" }
+    "BLOCK_SOURCE_IP" = @{ Tier = "AUTO"; Reason = "Safe - inbound block only, reversible via rollback" }
     "ALERT_AND_LOG" = @{ Tier = "AUTO"; Reason = "Always safe" }
     "DELETE_ROGUE_TASK" = @{ Tier = "AUTO"; Reason = "Safe if task was not in Phase 0 baseline" }
     
     # OPERATOR Tier - High-impact actions requiring human judgment
     "DISABLE_ACCOUNT" = @{ Tier = "OPERATOR"; Reason = "Could break scoring if account is service-linked" }
-    "ROTATE_CREDENTIALS" = @{ Tier = "OPERATOR"; Reason = "High-impact — needs human judgment" }
+    "ROTATE_CREDENTIALS" = @{ Tier = "OPERATOR"; Reason = "High-impact - needs human judgment" }
     "ISOLATE_MACHINE" = @{ Tier = "OPERATOR"; Reason = "Breaks all services on that machine" }
     "DISABLE_DOMAIN_ADMIN" = @{ Tier = "OPERATOR"; Reason = "Could lock out the entire team" }
 }
