@@ -83,49 +83,6 @@ Run-Inject.ps1
   - USE: When inject drops during competition
 
 
-TESTING & VALIDATION
----------------------
-
-Quick-Test.ps1
-  - Read-only functionality test
-  - Validates modules load correctly
-  - Tests scoring service detection
-  - Safe for personal machines
-  - No system modifications
-  - USE: Pre-competition validation
-
-Safe-Test.ps1
-  - Read-only testing for personal machines
-  - Tests system identification without changes
-  - Validates module loading
-  - Shows what would be detected/hardened
-  - USE: Testing on non-competition machines
-
-Test-Suite.ps1
-  - Comprehensive test suite
-  - Tests all modules and functions
-  - Validates scoring service detection
-  - Network connectivity tests
-  - USE: Full validation before competition
-
-
-UTILITY SCRIPTS
----------------
-
-Remove-Branding.ps1
-  - Removes all CCDC references from code
-  - Replaces with generic SecOps terminology
-  - Processes all .ps1, .md, .txt, .bat files
-  - Reports number of files modified
-  - USE: Operational security to hide competition-specific nature
-
-Reset.ps1 / reset.bat
-  - Emergency system reset
-  - Stops all running jobs
-  - Clears logs
-  - Restores original state
-  - USE: Clean slate between tests
-
 
 MODULES (Modules/ directory)
 -----------------------------
@@ -287,9 +244,6 @@ Emergency:
 1. QuickSetup.ps1 (rapid deployment)
 OR
 1. Emergency-Killswitch.ps1 (if compromised)
-
-Testing:
-1. Quick-Test.ps1 or Safe-Test.ps1 (validation only)
 
 
 KEY DIRECTORIES
