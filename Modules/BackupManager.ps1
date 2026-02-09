@@ -310,7 +310,7 @@ function Invoke-SystemRollback {
                             Write-SecLog "No manifest found for backup $backupId, skipping" "WARN"
                         }
                     } catch {
-                        Write-SecLog "Failed to restore GPO $backupId: $($_.Exception.Message)" "ERROR"
+                        Write-SecLog "Failed to restore GPO $backupId - $($_.Exception.Message)" "ERROR"
                     }
                 }
                 
