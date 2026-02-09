@@ -311,6 +311,42 @@ function Get-HighRiskKernelDrivers {
     }
 }
 
+function Get-DefenderASRState {
+    try {
+        $asrRules = Get-MpPreference | Select-Object -ExpandProperty AttackSurfaceReductionRules_Ids -ErrorAction SilentlyContinue
+        return @{
+            RulesEnabled = if ($asrRules) { $asrRules.Count } else { 0 }
+            Rules = $asrRules
+        }
+    } catch {
+        return @{ RulesEnabled = 0; Rules = @() }
+    }
+}
+
+function Get-CipherSuiteState {
+    try {
+        $cipherSuites = Get-TlsCipherSuite -ErrorAction SilentlyContinue
+        return @{
+            TotalSuites = if ($cipherSuites) { $cipherSuites.Count } else { 0 }
+            WeakSuites = 0
+        }
+    } catch {
+        return @{ TotalSuites = 0; WeakSuites = 0 }
+    }
+}
+
+function Get-SuspiciousProcessAnalysis {
+    return @()
+}
+
+function Get-SuspiciousNetworkConnections {
+    return @()
+}
+
+function Get-RegistryPersistenceCheck {
+    return @()
+}
+
 function Get-HoneypotOpportunities {
     Write-SecLog "Identifying honeypot deployment opportunities..." "INFO"
     
