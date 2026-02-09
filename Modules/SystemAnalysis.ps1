@@ -28,6 +28,9 @@ function Invoke-AdvancedSystemAnalysis {
         
         # Honeypot readiness
         HoneypotOpportunities = Get-HoneypotOpportunities
+        
+        # Security posture score (calculated below)
+        SecurityPostureScore = 0
     }
     
     # Generate security posture score
