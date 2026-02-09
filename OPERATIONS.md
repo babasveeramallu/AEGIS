@@ -51,17 +51,11 @@
 
 ### 📊 **Pre-Deployment Validation (NEW - CRITICAL)**
 ```powershell
-# Quick functionality test
-.\Quick-Test.ps1
-
 # Validate network connectivity BEFORE deployment
 Test-NetworkConnectivity
 
 # Create scoring services baseline
 Test-ScoringServicesBaseline
-
-# Comprehensive test suite
-.\Test-Suite.ps1
 ```
 
 ### 🔍 **Continuous Scanning & Network Monitoring**
@@ -125,16 +119,13 @@ NetworkConnectivity    # NEW - fixes Inject 01 (scored 0)
 
 ### Phase 1: Pre-Deployment (5 minutes)
 ```powershell
-# 1. Run pre-flight checks
-.\Quick-Test.ps1
-
-# 2. Validate network connectivity
+# 1. Validate network connectivity
 Test-NetworkConnectivity
 
-# 3. Create scoring baseline
+# 2. Create scoring baseline
 Test-ScoringServicesBaseline
 
-# 4. Document current state
+# 3. Document current state
 Get-Service | Where-Object Status -eq "Running" | Export-Csv baseline_services.csv
 Get-NetTCPConnection | Where-Object State -eq "Listen" | Export-Csv baseline_ports.csv
 ```
@@ -329,14 +320,12 @@ dir C:\Security-Logs\Reports\ | Sort-Object LastWriteTime -Descending
 ## FINAL DEPLOYMENT CHECKLIST
 
 ### ✅ **Pre-Competition Validation**
-- [ ] Test suite passes on isolated VMs (all system types)
 - [ ] Rollback functionality verified on each system type
 - [ ] Scoring service validation tested
 - [ ] Network connectivity validation tested
 - [ ] Inject response tools tested (Run-Inject.ps1)
 - [ ] Honeypot monitoring confirmed operational
 - [ ] Team trained on emergency procedures
-- [ ] QUICK-REF.txt printed and distributed
 
 ### ✅ **Competition Day Readiness**
 - [ ] Tool deployed on USB drives (network may be compromised)
