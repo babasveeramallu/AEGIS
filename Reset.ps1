@@ -15,7 +15,7 @@ param(
     [switch]$Restore
 )
 
-$killswitchMarker = "C:\CCDC-Logs\KILLSWITCH_ACTIVE.flag"
+$killswitchMarker = "C:\Security-Logs\KILLSWITCH_ACTIVE.flag"
 
 function Invoke-EmergencyKillswitch {
     Write-Host "`n[EMERGENCY KILLSWITCH ACTIVATED]" -ForegroundColor Red -BackgroundColor Yellow

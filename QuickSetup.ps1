@@ -19,50 +19,26 @@ param(
     [switch]$EmergencyMode = $false
 )
 
-# Import configuration with security functions
 . ".\Config\Configuration.ps1"
 
-$script:SecureLogPath = "C:\CCDC-Logs\RapidDeploy"
+$script:SecureLogPath = "C:\Security-Logs\RapidDeploy"
 $Global:NetworkIsolated = $false
 $Global:OriginalFirewallState = $null
 $Global:MalwareDetected = $false
 
 function Write-SecureLog {
     param([string]$Message, [string]$Level = "INFO")
-    $timestamp = Get-Date -Format "HH:mm:ss.fff"
-    $entry = "[$timestamp][$Level] $Message"
-    Add-Content -Path "$script:SecureLogPath\deploy.log" -Value $entry -Force
-    if ($Level -eq "ERROR") { Write-Host $entry -ForegroundColor Red }
-    elseif ($Level -eq "WARN") { Write-Host $entry -ForegroundColor Yellow }
-    else { Write-Host $entry -ForegroundColor Green }
+    if (!(Test-Path $script:SecureLogPath)) { New-Item -Path $script:SecureLogPath -ItemType Directory -Force | Out-Null }
+    Add-Content -Path "$script:SecureLogPath\deploy.log" -Value "[$(Get-Date -Format 'HH:mm:ss.fff')][$Level] $Message" -Force
+    Write-SecLog $Message $Level
 }
 
 function Initialize-SecureEnvironment {
     try {
-        # Create secure log directory
         New-Item -Path $script:SecureLogPath -ItemType Directory -Force | Out-Null
         
-        # Verify admin privileges
         if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
             throw "Administrator privileges required"
-        }
-        
-        # Secure execution policy with proper restoration
-        $originalPolicy = Get-ExecutionPolicy -Scope Process
-        try {
-            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-            Write-SecureLog "Execution policy temporarily changed to RemoteSigned"
-        } catch {
-            Write-SecureLog "Failed to change execution policy: $($_.Exception.Message)" "ERROR"
-            return $false
-        } finally {
-            # Always restore original policy
-            try {
-                Set-ExecutionPolicy -ExecutionPolicy $originalPolicy -Scope Process -Force
-                Write-SecureLog "Execution policy restored to $originalPolicy"
-            } catch {
-                Write-SecureLog "Failed to restore execution policy" "WARN"
-            }
         }
         
         Write-SecureLog "Secure environment initialized"
@@ -107,7 +83,7 @@ function Invoke-NetworkIsolation {
         )
         
         foreach ($service in $allowedServices) {
-            New-NetFirewallRule -DisplayName "CCDC-Allow-$($service.Name)" -Direction Outbound -Protocol $service.Protocol -RemotePort $service.Port -Action Allow -ErrorAction SilentlyContinue
+            New-NetFirewallRule -DisplayName "FW-Allow-$($service.Name)" -Direction Outbound -Protocol $service.Protocol -RemotePort $service.Port -Action Allow -ErrorAction SilentlyContinue
         }
         
         # Allow only essential local traffic
@@ -139,7 +115,7 @@ function Invoke-ComprehensiveMalwareScan {
             "psexec", "paexec", "remcom", "winexesvc", "procdump", "dumpert"
         )
         
-        $runningProcesses = Get-Process | Select-Object Name, Id, Path, CommandLine
+        $runningProcesses = Get-Process | Select-Object Name, Id, Path
         $detectedThreats = @()
         
         foreach ($process in $runningProcesses) {

@@ -8,7 +8,7 @@ $Global:ServiceBaselines = @{}
 function Start-ScoringValidation {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting scoring validation loop..." "INFO"
+    Write-SecLog "Starting scoring validation loop..." "INFO"
     
     try {
         # Create service baselines
@@ -73,17 +73,17 @@ function Start-ScoringValidation {
         } -ArgumentList $Global:LogPath, $SystemProfile, $Global:ServiceBaselines
         
         $Global:ScoringJobs += $scoringJob
-        Write-CCDCLog "Scoring validation started (Job ID: $($scoringJob.Id))" "SUCCESS"
+        Write-SecLog "Scoring validation started (Job ID: $($scoringJob.Id))" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Failed to start scoring validation: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to start scoring validation: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Initialize-ServiceBaselines {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Creating service baselines..." "INFO"
+    Write-SecLog "Creating service baselines..." "INFO"
     
     foreach ($service in $SystemProfile.ScoringServices) {
         $serviceParts = $service.Split(':')
@@ -93,9 +93,9 @@ function Initialize-ServiceBaselines {
         try {
             $baseline = Create-ServiceBaseline -ServiceName $serviceName -Port $port -SystemProfile $SystemProfile
             $Global:ServiceBaselines[$service] = $baseline
-            Write-CCDCLog "Baseline created for $serviceName on port $port" "SUCCESS"
+            Write-SecLog "Baseline created for $serviceName on port $port" "SUCCESS"
         } catch {
-            Write-CCDCLog "Failed to create baseline for $serviceName : $($_.Exception.Message)" "WARN"
+            Write-SecLog "Failed to create baseline for $serviceName : $($_.Exception.Message)" "WARN"
         }
     }
 }
@@ -515,18 +515,18 @@ function Get-ScoringStatus {
 }
 
 function Stop-ScoringValidation {
-    Write-CCDCLog "Stopping scoring validation..." "INFO"
+    Write-SecLog "Stopping scoring validation..." "INFO"
     
     foreach ($job in $Global:ScoringJobs) {
         try {
             Stop-Job -Job $job -ErrorAction SilentlyContinue
             Remove-Job -Job $job -ErrorAction SilentlyContinue
-            Write-CCDCLog "Stopped scoring job: $($job.Id)" "INFO"
+            Write-SecLog "Stopped scoring job: $($job.Id)" "INFO"
         } catch {
-            Write-CCDCLog "Error stopping scoring job $($job.Id): $($_.Exception.Message)" "WARN"
+            Write-SecLog "Error stopping scoring job $($job.Id): $($_.Exception.Message)" "WARN"
         }
     }
     
     $Global:ScoringJobs = @()
-    Write-CCDCLog "Scoring validation stopped" "SUCCESS"
+    Write-SecLog "Scoring validation stopped" "SUCCESS"
 }

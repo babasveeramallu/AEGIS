@@ -4,7 +4,7 @@
 function Invoke-SecurityVulnerabilityAssessment {
     param([switch]$DeepScan = $false)
     
-    Write-CCDCLog "Starting comprehensive security vulnerability assessment..." "INFO"
+    Write-SecLog "Starting comprehensive security vulnerability assessment..." "INFO"
     
     $vulnerabilities = @{
         Critical = @()
@@ -43,16 +43,16 @@ function Invoke-SecurityVulnerabilityAssessment {
         $totalThreats = $vulnerabilities.Critical.Count + $vulnerabilities.High.Count + $vulnerabilities.Medium.Count + $vulnerabilities.Malware.Count
         
         if ($totalThreats -gt 0) {
-            Write-CCDCLog "SECURITY ASSESSMENT COMPLETE: $totalThreats threats detected" "ERROR"
+            Write-SecLog "SECURITY ASSESSMENT COMPLETE: $totalThreats threats detected" "ERROR"
             Export-SecurityReport -Vulnerabilities $vulnerabilities
         } else {
-            Write-CCDCLog "Security assessment complete - no threats detected" "SUCCESS"
+            Write-SecLog "Security assessment complete - no threats detected" "SUCCESS"
         }
         
         return $vulnerabilities
         
     } catch {
-        Write-CCDCLog "Security assessment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Security assessment failed: $($_.Exception.Message)" "ERROR"
         return $vulnerabilities
     }
 }
@@ -60,7 +60,7 @@ function Invoke-SecurityVulnerabilityAssessment {
 function Test-ScriptVulnerabilities {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for script vulnerabilities..." "INFO"
+    Write-SecLog "Scanning for script vulnerabilities..." "INFO"
     
     try {
         # Check our own scripts for security issues
@@ -106,14 +106,14 @@ function Test-ScriptVulnerabilities {
         }
         
     } catch {
-        Write-CCDCLog "Script vulnerability scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Script vulnerability scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Invoke-SystemMalwareScan {
     param($VulnReport)
     
-    Write-CCDCLog "Performing comprehensive malware scan..." "INFO"
+    Write-SecLog "Performing comprehensive malware scan..." "INFO"
     
     try {
         # 1. Known malware process signatures
@@ -155,7 +155,7 @@ function Invoke-SystemMalwareScan {
                         Severity = "Critical"
                         Action = "TERMINATE_IMMEDIATELY"
                     }
-                    Write-CCDCLog "MALWARE: $safeName - $($malwareSignatures[$signature])" "ERROR"
+                    Write-SecLog "MALWARE: $safeName - $($malwareSignatures[$signature])" "ERROR"
                 }
             }
         }
@@ -215,17 +215,17 @@ function Invoke-SystemMalwareScan {
         )
         
         # This would require more advanced memory scanning - placeholder for now
-        Write-CCDCLog "Memory-based malware detection requires advanced tooling" "INFO"
+        Write-SecLog "Memory-based malware detection requires advanced tooling" "INFO"
         
     } catch {
-        Write-CCDCLog "Malware scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Malware scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-NetworkThreats {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for network-based threats..." "INFO"
+    Write-SecLog "Scanning for network-based threats..." "INFO"
     
     try {
         # 1. Suspicious network connections
@@ -275,14 +275,14 @@ function Test-NetworkThreats {
         }
         
     } catch {
-        Write-CCDCLog "Network threat scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Network threat scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-RegistryPersistence {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for registry-based persistence..." "INFO"
+    Write-SecLog "Scanning for registry-based persistence..." "INFO"
     
     try {
         $persistenceKeys = @(
@@ -320,14 +320,14 @@ function Test-RegistryPersistence {
         }
         
     } catch {
-        Write-CCDCLog "Registry persistence scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Registry persistence scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-FileSystemAnomalies {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for file system anomalies..." "INFO"
+    Write-SecLog "Scanning for file system anomalies..." "INFO"
     
     try {
         # Check for files with suspicious attributes
@@ -358,14 +358,14 @@ function Test-FileSystemAnomalies {
         }
         
     } catch {
-        Write-CCDCLog "File system anomaly scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "File system anomaly scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-ProcessAnomalies {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for process anomalies..." "INFO"
+    Write-SecLog "Scanning for process anomalies..." "INFO"
     
     try {
         $processes = Get-Process | Select-Object Name, Id, Path, CommandLine, StartTime
@@ -387,14 +387,14 @@ function Test-ProcessAnomalies {
         }
         
     } catch {
-        Write-CCDCLog "Process anomaly scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Process anomaly scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-KernelThreats {
     param($VulnReport)
     
-    Write-CCDCLog "Scanning for kernel-level threats..." "INFO"
+    Write-SecLog "Scanning for kernel-level threats..." "INFO"
     
     try {
         # Check for suspicious drivers
@@ -418,7 +418,7 @@ function Test-KernelThreats {
         }
         
     } catch {
-        Write-CCDCLog "Kernel threat scan failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Kernel threat scan failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
@@ -443,18 +443,18 @@ function Export-SecurityReport {
     }
     
     $report | ConvertTo-Json -Depth 10 | Out-File $reportPath
-    Write-CCDCLog "Security report exported: $reportPath" "INFO"
+    Write-SecLog "Security report exported: $reportPath" "INFO"
 }
 
 function Invoke-ThreatMitigation {
     param($Vulnerabilities)
     
-    Write-CCDCLog "Starting threat mitigation..." "WARN"
+    Write-SecLog "Starting threat mitigation..." "WARN"
     
     foreach ($malware in $Vulnerabilities.Malware) {
         if ($malware.Type -eq "Malware Process" -and $malware.Action -eq "TERMINATE_IMMEDIATELY") {
             if (Stop-ProcessSafe -Id $malware.ProcessId -Name $malware.ProcessName) {
-                Write-CCDCLog "Terminated: $($malware.ProcessName)" "SUCCESS"
+                Write-SecLog "Terminated: $($malware.ProcessName)" "SUCCESS"
             }
         }
     }
@@ -468,9 +468,9 @@ function Invoke-ThreatMitigation {
             try {
                 $quarantineFile = "$quarantinePath\$(Split-Path $malware.FilePath -Leaf).quarantine"
                 Move-Item $malware.FilePath $quarantineFile -Force
-                Write-CCDCLog "Quarantined malware file: $($malware.FilePath)" "SUCCESS"
+                Write-SecLog "Quarantined malware file: $($malware.FilePath)" "SUCCESS"
             } catch {
-                Write-CCDCLog "Failed to quarantine file: $($malware.FilePath)" "ERROR"
+                Write-SecLog "Failed to quarantine file: $($malware.FilePath)" "ERROR"
             }
         }
     }

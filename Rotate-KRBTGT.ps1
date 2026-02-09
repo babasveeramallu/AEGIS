@@ -51,7 +51,7 @@ function Rotate-KRBTGTPassword {
         
         # Log the rotation
         $logEntry = "[$(Get-Date)] KRBTGT password rotated by $env:USERNAME"
-        $logEntry | Out-File "C:\CCDC-Logs\krbtgt_rotation.log" -Append
+        $logEntry | Out-File "C:\Security-Logs\krbtgt_rotation.log" -Append
         
     } catch {
         Write-Host "`n[ERROR] Failed to rotate KRBTGT: $($_.Exception.Message)" -ForegroundColor Red

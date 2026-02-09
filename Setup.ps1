@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    CCDC 2026 - Quick Deployment Script
+    SecOps 2026 - Quick Deployment Script
     
 .DESCRIPTION
     Rapid deployment script for competition day.
@@ -19,20 +19,11 @@ param(
     [switch]$CheckOnly
 )
 
+. ".\Config\Configuration.ps1"
+
 function Write-DeployLog {
-    param(
-        [string]$Message,
-        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS")]$Level = "INFO"
-    )
-    
-    $timestamp = Get-Date -Format "HH:mm:ss"
-    
-    switch ($Level) {
-        "INFO"    { Write-Host "[$timestamp] [INFO] $Message" -ForegroundColor White }
-        "WARN"    { Write-Host "[$timestamp] [WARN] $Message" -ForegroundColor Yellow }
-        "ERROR"   { Write-Host "[$timestamp] [ERROR] $Message" -ForegroundColor Red }
-        "SUCCESS" { Write-Host "[$timestamp] [SUCCESS] $Message" -ForegroundColor Green }
-    }
+    param([string]$Message, [string]$Level = "INFO")
+    Write-SecLog $Message $Level
 }
 
 function Test-Prerequisites {
@@ -68,26 +59,10 @@ function Test-Prerequisites {
         Write-DeployLog "Execution policy: $execPolicy" "SUCCESS"
     }
     
-    # Check required modules exist
-    $requiredModules = @(
-        "Phase0-SystemIdentification.ps1",
-        "Phase0.5-BackupRollback.ps1", 
-        "Phase1-Hardening.ps1",
-        "Phase2-Monitoring.ps1",
-        "Phase3-Detection.ps1",
-        "Phase4-IncidentResponse.ps1",
-        "Phase5-ScoringValidation.ps1"
-    )
-    
-    foreach ($module in $requiredModules) {
-        $modulePath = ".\Modules\$module"
-        if (-not (Test-Path $modulePath)) {
-            $issues += "Missing module: $module"
-        }
-    }
-    
-    if ($requiredModules.Count -eq (Get-ChildItem ".\Modules\*.ps1").Count) {
-        Write-DeployLog "All required modules found" "SUCCESS"
+    if ((Get-ChildItem ".\Modules\*.ps1" -ErrorAction SilentlyContinue).Count -gt 0) {
+        Write-DeployLog "Modules found" "SUCCESS"
+    } else {
+        $issues += "No modules found in .\Modules\"
     }
     
     # Check main tool exists
@@ -208,7 +183,7 @@ function Start-DeploymentWizard {
 try {
     if (Start-DeploymentWizard) {
         if (-not $CheckOnly) {
-            Write-Host "`n🚀 STARTING CCDC ADAPTIVE TOOL..." -ForegroundColor Green
+            Write-Host "`n🚀 STARTING SecOps ADAPTIVE TOOL..." -ForegroundColor Green
             Write-Host "Monitor progress in the main tool output below." -ForegroundColor White
             Write-Host "Press Ctrl+C to stop the tool when competition ends.`n" -ForegroundColor White
             

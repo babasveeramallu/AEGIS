@@ -28,39 +28,39 @@ function Test-SafePath {
 function Invoke-SystemBackup {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting system backup process..." "INFO"
+    Write-SecLog "Starting system backup process..." "INFO"
     
     $backupTimestamp = Get-Date -Format "yyyyMMdd-HHmmss"
     $backupDir = "$Global:BackupPath\$backupTimestamp"
     
     # Validate backup path to prevent path traversal
     if (-not (Test-SafePath -Path $backupDir -AllowedBase $Global:BackupPath)) {
-        Write-CCDCLog "Invalid backup path detected: potential path traversal" "ERROR"
+        Write-SecLog "Invalid backup path detected: potential path traversal" "ERROR"
         return $false
     }
     
     try {
         # Create backup directory
         New-Item -Path $backupDir -ItemType Directory -Force | Out-Null
-        Write-CCDCLog "Created backup directory: $backupDir" "INFO"
+        Write-SecLog "Created backup directory: $backupDir" "INFO"
         
         # 1. Windows Firewall Rules (All systems)
-        Write-CCDCLog "Backing up Windows Firewall rules..." "INFO"
+        Write-SecLog "Backing up Windows Firewall rules..." "INFO"
         $firewallBackup = "$backupDir\firewall_backup.wfw"
         if (-not (Test-SafePath -Path $firewallBackup -AllowedBase $backupDir)) {
-            Write-CCDCLog "Invalid firewall backup path" "ERROR"
+            Write-SecLog "Invalid firewall backup path" "ERROR"
             return $false
         }
         netsh advfirewall export $firewallBackup | Out-Null
         if (Test-Path $firewallBackup) {
-            Write-CCDCLog "Firewall rules backed up successfully" "SUCCESS"
+            Write-SecLog "Firewall rules backed up successfully" "SUCCESS"
         } else {
-            Write-CCDCLog "Failed to backup firewall rules" "ERROR"
+            Write-SecLog "Failed to backup firewall rules" "ERROR"
             return $false
         }
         
         # 2. Registry Keys (All systems)
-        Write-CCDCLog "Backing up critical registry keys..." "INFO"
+        Write-SecLog "Backing up critical registry keys..." "INFO"
         $registryKeys = @(
             "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters",
             "HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell",
@@ -74,46 +74,46 @@ function Invoke-SystemBackup {
                 $regFile = "$backupDir\registry_$keyName.reg"
                 reg export $key $regFile /y 2>$null
                 if (Test-Path $regFile) {
-                    Write-CCDCLog "Registry key $keyName backed up" "INFO"
+                    Write-SecLog "Registry key $keyName backed up" "INFO"
                 }
             } catch {
-                Write-CCDCLog "Could not backup registry key: $key" "WARN"
+                Write-SecLog "Could not backup registry key: $key" "WARN"
             }
         }
         
         # 3. Service Start States (All systems)
-        Write-CCDCLog "Backing up service states..." "INFO"
+        Write-SecLog "Backing up service states..." "INFO"
         $services = Get-Service | Select-Object Name, Status, StartType
         $services | Export-Clixml "$backupDir\services_state.xml"
-        Write-CCDCLog "Service states backed up" "SUCCESS"
+        Write-SecLog "Service states backed up" "SUCCESS"
         
         # 4. IIS Configuration (Web Server only)
         if ($SystemProfile.IIS) {
-            Write-CCDCLog "Backing up IIS configuration..." "INFO"
+            Write-SecLog "Backing up IIS configuration..." "INFO"
             try {
                 # Backup applicationHost.config
                 $iisConfig = "$env:SystemRoot\System32\inetsrv\config\applicationHost.config"
                 if (Test-Path $iisConfig) {
                     Copy-Item $iisConfig "$backupDir\applicationHost.config.bak"
-                    Write-CCDCLog "IIS applicationHost.config backed up" "SUCCESS"
+                    Write-SecLog "IIS applicationHost.config backed up" "SUCCESS"
                 }
                 
                 # Create IIS backup using appcmd
-                $backupName = "CCDC-Backup-$backupTimestamp"
+                $backupName = "SecOps-Backup-$backupTimestamp"
                 & "$env:SystemRoot\System32\inetsrv\appcmd.exe" add backup $backupName
-                Write-CCDCLog "IIS configuration backup created: $backupName" "SUCCESS"
+                Write-SecLog "IIS configuration backup created: $backupName" "SUCCESS"
                 
                 # Store backup name for rollback
                 $backupName | Out-File "$backupDir\iis_backup_name.txt"
                 
             } catch {
-                Write-CCDCLog "IIS backup failed: $($_.Exception.Message)" "ERROR"
+                Write-SecLog "IIS backup failed: $($_.Exception.Message)" "ERROR"
             }
         }
         
         # 5. GPO Export (AD Server only)
         if ($SystemProfile.DetectedRole -eq "ActiveDirectory_DNS") {
-            Write-CCDCLog "Backing up Group Policy Objects..." "INFO"
+            Write-SecLog "Backing up Group Policy Objects..." "INFO"
             try {
                 Import-Module GroupPolicy -ErrorAction SilentlyContinue
                 $gpoBackupDir = "$backupDir\GPO"
@@ -123,47 +123,47 @@ function Invoke-SystemBackup {
                 foreach ($gpo in $gpos) {
                     try {
                         Backup-GPO -Guid $gpo.Id -Path $gpoBackupDir | Out-Null
-                        Write-CCDCLog "GPO backed up: $($gpo.DisplayName)" "INFO"
+                        Write-SecLog "GPO backed up: $($gpo.DisplayName)" "INFO"
                     } catch {
-                        Write-CCDCLog "Failed to backup GPO: $($gpo.DisplayName)" "WARN"
+                        Write-SecLog "Failed to backup GPO: $($gpo.DisplayName)" "WARN"
                     }
                 }
-                Write-CCDCLog "GPO backup completed" "SUCCESS"
+                Write-SecLog "GPO backup completed" "SUCCESS"
             } catch {
-                Write-CCDCLog "GPO backup failed: $($_.Exception.Message)" "WARN"
+                Write-SecLog "GPO backup failed: $($_.Exception.Message)" "WARN"
             }
         }
         
         # 6. FTP Site Configuration (FTP Server only)
         if ($SystemProfile.FTP) {
-            Write-CCDCLog "Backing up FTP configuration..." "INFO"
+            Write-SecLog "Backing up FTP configuration..." "INFO"
             try {
                 & "$env:SystemRoot\System32\inetsrv\appcmd.exe" list site /config > "$backupDir\ftp_sites_config.txt"
-                Write-CCDCLog "FTP configuration backed up" "SUCCESS"
+                Write-SecLog "FTP configuration backed up" "SUCCESS"
             } catch {
-                Write-CCDCLog "FTP backup failed: $($_.Exception.Message)" "WARN"
+                Write-SecLog "FTP backup failed: $($_.Exception.Message)" "WARN"
             }
         }
         
         # 7. System Restore Point (Workstation only)
         if ($SystemProfile.IsWorkstation) {
-            Write-CCDCLog "Creating system restore point..." "INFO"
+            Write-SecLog "Creating system restore point..." "INFO"
             try {
-                Checkpoint-Computer -Description "CCDC-Tool-Backup-$backupTimestamp" -RestorePointType "MODIFY_SETTINGS"
-                Write-CCDCLog "System restore point created" "SUCCESS"
+                Checkpoint-Computer -Description "SecOps-Tool-Backup-$backupTimestamp" -RestorePointType "MODIFY_SETTINGS"
+                Write-SecLog "System restore point created" "SUCCESS"
             } catch {
-                Write-CCDCLog "System restore point creation failed: $($_.Exception.Message)" "WARN"
+                Write-SecLog "System restore point creation failed: $($_.Exception.Message)" "WARN"
             }
         }
         
         # 8. Current Windows Defender Configuration
-        Write-CCDCLog "Backing up Windows Defender configuration..." "INFO"
+        Write-SecLog "Backing up Windows Defender configuration..." "INFO"
         try {
             $defenderPrefs = Get-MpPreference
             $defenderPrefs | Export-Clixml "$backupDir\defender_config.xml"
-            Write-CCDCLog "Windows Defender configuration backed up" "SUCCESS"
+            Write-SecLog "Windows Defender configuration backed up" "SUCCESS"
         } catch {
-            Write-CCDCLog "Defender backup failed: $($_.Exception.Message)" "WARN"
+            Write-SecLog "Defender backup failed: $($_.Exception.Message)" "WARN"
         }
         
         # Create backup manifest
@@ -189,13 +189,13 @@ function Invoke-SystemBackup {
         # Store latest backup path globally
         $Global:LatestBackupPath = $backupDir
         
-        Write-CCDCLog "System backup completed successfully" "SUCCESS"
-        Write-CCDCLog "Backup location: $backupDir" "INFO"
+        Write-SecLog "System backup completed successfully" "SUCCESS"
+        Write-SecLog "Backup location: $backupDir" "INFO"
         
         return $true
         
     } catch {
-        Write-CCDCLog "Critical error during backup: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Critical error during backup: $($_.Exception.Message)" "ERROR"
         return $false
     }
 }
@@ -204,44 +204,44 @@ function Invoke-SystemRollback {
     param([string]$BackupPath = $Global:LatestBackupPath)
     
     if (-not $BackupPath -or -not (Test-Path $BackupPath)) {
-        Write-CCDCLog "No valid backup path found. Cannot perform rollback." "ERROR"
+        Write-SecLog "No valid backup path found. Cannot perform rollback." "ERROR"
         return $false
     }
     
-    Write-CCDCLog "Starting system rollback from: $BackupPath" "WARN"
+    Write-SecLog "Starting system rollback from: $BackupPath" "WARN"
     
     try {
         $manifestPath = "$BackupPath\backup_manifest.xml"
         if (Test-Path $manifestPath) {
             $manifest = Import-Clixml $manifestPath
-            Write-CCDCLog "Loaded backup manifest from $($manifest.BackupTimestamp)" "INFO"
+            Write-SecLog "Loaded backup manifest from $($manifest.BackupTimestamp)" "INFO"
         } else {
-            Write-CCDCLog "No backup manifest found. Proceeding with standard rollback." "WARN"
+            Write-SecLog "No backup manifest found. Proceeding with standard rollback." "WARN"
         }
         
         # 1. Restore Firewall Rules
         $firewallBackup = "$BackupPath\firewall_backup.wfw"
         if (Test-Path $firewallBackup) {
-            Write-CCDCLog "Restoring firewall rules..." "INFO"
+            Write-SecLog "Restoring firewall rules..." "INFO"
             netsh advfirewall import $firewallBackup | Out-Null
-            Write-CCDCLog "Firewall rules restored" "SUCCESS"
+            Write-SecLog "Firewall rules restored" "SUCCESS"
         }
         
         # 2. Restore Registry Keys
-        Write-CCDCLog "Restoring registry keys..." "INFO"
+        Write-SecLog "Restoring registry keys..." "INFO"
         Get-ChildItem "$BackupPath\registry_*.reg" | ForEach-Object {
             try {
                 reg import $_.FullName /y 2>$null
-                Write-CCDCLog "Registry restored: $($_.Name)" "INFO"
+                Write-SecLog "Registry restored: $($_.Name)" "INFO"
             } catch {
-                Write-CCDCLog "Failed to restore registry: $($_.Name)" "WARN"
+                Write-SecLog "Failed to restore registry: $($_.Name)" "WARN"
             }
         }
         
         # 3. Restore Service States
         $servicesBackup = "$BackupPath\services_state.xml"
         if (Test-Path $servicesBackup) {
-            Write-CCDCLog "Restoring service states..." "INFO"
+            Write-SecLog "Restoring service states..." "INFO"
             $originalServices = Import-Clixml $servicesBackup
             foreach ($service in $originalServices) {
                 try {
@@ -254,22 +254,22 @@ function Invoke-SystemRollback {
                         }
                     }
                 } catch {
-                    Write-CCDCLog "Could not restore service: $($service.Name)" "WARN"
+                    Write-SecLog "Could not restore service: $($service.Name)" "WARN"
                 }
             }
-            Write-CCDCLog "Service states restored" "SUCCESS"
+            Write-SecLog "Service states restored" "SUCCESS"
         }
         
         # 4. Restore IIS Configuration
         $iisBackupName = "$BackupPath\iis_backup_name.txt"
         if (Test-Path $iisBackupName) {
             $backupName = Get-Content $iisBackupName
-            Write-CCDCLog "Restoring IIS configuration: $backupName" "INFO"
+            Write-SecLog "Restoring IIS configuration: $backupName" "INFO"
             try {
                 & "$env:SystemRoot\System32\inetsrv\appcmd.exe" restore backup $backupName
-                Write-CCDCLog "IIS configuration restored" "SUCCESS"
+                Write-SecLog "IIS configuration restored" "SUCCESS"
             } catch {
-                Write-CCDCLog "IIS restore failed: $($_.Exception.Message)" "ERROR"
+                Write-SecLog "IIS restore failed: $($_.Exception.Message)" "ERROR"
             }
         }
         
@@ -277,12 +277,12 @@ function Invoke-SystemRollback {
         $gpoBackupDir = "$BackupPath\GPO"
         
         if (-not (Test-SafePath -Path $gpoBackupDir -AllowedBase $BackupPath)) {
-            Write-CCDCLog "Invalid GPO backup path detected" "ERROR"
+            Write-SecLog "Invalid GPO backup path detected" "ERROR"
             return $false
         }
         
         if (Test-Path $gpoBackupDir) {
-            Write-CCDCLog "Restoring Group Policy Objects..." "INFO"
+            Write-SecLog "Restoring Group Policy Objects..." "INFO"
             try {
                 Import-Module GroupPolicy -ErrorAction Stop
                 $backups = Get-ChildItem $gpoBackupDir -Directory
@@ -293,7 +293,7 @@ function Invoke-SystemRollback {
                         $manifestPath = "$gpoBackupDir\$backupId\manifest.xml"
                         
                         if (-not (Test-SafePath -Path $manifestPath -AllowedBase $gpoBackupDir)) {
-                            Write-CCDCLog "Invalid manifest path detected: $backupId" "ERROR"
+                            Write-SecLog "Invalid manifest path detected: $backupId" "ERROR"
                             continue
                         }
                         
@@ -302,59 +302,59 @@ function Invoke-SystemRollback {
                             
                             if ($manifestXml.Backup.BackupInst.ID.InnerText -eq $backupId) {
                                 Restore-GPO -BackupId $backupId -Path $gpoBackupDir -ErrorAction Stop
-                                Write-CCDCLog "Restored GPO: $backupId" "SUCCESS"
+                                Write-SecLog "Restored GPO: $backupId" "SUCCESS"
                             } else {
-                                Write-CCDCLog "Backup manifest validation failed for $backupId" "ERROR"
+                                Write-SecLog "Backup manifest validation failed for $backupId" "ERROR"
                             }
                         } else {
-                            Write-CCDCLog "No manifest found for backup $backupId, skipping" "WARN"
+                            Write-SecLog "No manifest found for backup $backupId, skipping" "WARN"
                         }
                     } catch {
-                        Write-CCDCLog "Failed to restore GPO $backupId: $($_.Exception.Message)" "ERROR"
+                        Write-SecLog "Failed to restore GPO $backupId: $($_.Exception.Message)" "ERROR"
                     }
                 }
                 
                 try {
                     gpupdate /force
-                    Write-CCDCLog "GPO refresh initiated" "SUCCESS"
+                    Write-SecLog "GPO refresh initiated" "SUCCESS"
                 } catch {
-                    Write-CCDCLog "GPO refresh failed" "WARN"
+                    Write-SecLog "GPO refresh failed" "WARN"
                 }
                 
-                Write-CCDCLog "GPO restoration completed" "SUCCESS"
+                Write-SecLog "GPO restoration completed" "SUCCESS"
             } catch {
-                Write-CCDCLog "GPO restore failed: $($_.Exception.Message)" "ERROR"
+                Write-SecLog "GPO restore failed: $($_.Exception.Message)" "ERROR"
             }
         }
         
         # 6. Restore Windows Defender Configuration
         $defenderBackup = "$BackupPath\defender_config.xml"
         if (Test-Path $defenderBackup) {
-            Write-CCDCLog "Restoring Windows Defender configuration..." "INFO"
+            Write-SecLog "Restoring Windows Defender configuration..." "INFO"
             try {
                 $defenderConfig = Import-Clixml $defenderBackup
                 # Restore key settings
                 Set-MpPreference -DisableRealtimeMonitoring $defenderConfig.DisableRealtimeMonitoring
-                Write-CCDCLog "Windows Defender configuration restored" "SUCCESS"
+                Write-SecLog "Windows Defender configuration restored" "SUCCESS"
             } catch {
-                Write-CCDCLog "Defender restore failed: $($_.Exception.Message)" "WARN"
+                Write-SecLog "Defender restore failed: $($_.Exception.Message)" "WARN"
             }
         }
         
-        Write-CCDCLog "System rollback completed" "SUCCESS"
-        Write-CCDCLog "Please verify all scoring services are operational" "WARN"
+        Write-SecLog "System rollback completed" "SUCCESS"
+        Write-SecLog "Please verify all scoring services are operational" "WARN"
         
         return $true
         
     } catch {
-        Write-CCDCLog "Critical error during rollback: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Critical error during rollback: $($_.Exception.Message)" "ERROR"
         return $false
     }
 }
 
 function Get-BackupHistory {
     if (-not (Test-Path $Global:BackupPath)) {
-        Write-CCDCLog "No backup directory found" "WARN"
+        Write-SecLog "No backup directory found" "WARN"
         return @()
     }
     

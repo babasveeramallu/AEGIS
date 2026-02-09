@@ -7,7 +7,7 @@ $Global:HoneypotCreated = $false
 function Start-DetectionModule {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting detection and alert systems..." "INFO"
+    Write-SecLog "Starting detection and alert systems..." "INFO"
     
     try {
         # 1. Identity & Credential Abuse Detection
@@ -33,15 +33,15 @@ function Start-DetectionModule {
         # 7. Honeypot & Deception Layer
         Start-HoneypotDeception -SystemProfile $SystemProfile
         
-        Write-CCDCLog "Detection module started successfully" "SUCCESS"
+        Write-SecLog "Detection module started successfully" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Error starting detection module: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Error starting detection module: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Start-CredentialAbuseDetection {
-    Write-CCDCLog "Starting credential abuse detection..." "INFO"
+    Write-SecLog "Starting credential abuse detection..." "INFO"
     
     $credDetectionJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -165,11 +165,11 @@ function Start-CredentialAbuseDetection {
     } -ArgumentList $Global:LogPath
     
     $Global:DetectionJobs += $credDetectionJob
-    Write-CCDCLog "Credential abuse detection started (Job ID: $($credDetectionJob.Id))" "SUCCESS"
+    Write-SecLog "Credential abuse detection started (Job ID: $($credDetectionJob.Id))" "SUCCESS"
 }
 
 function Start-LateralMovementDetection {
-    Write-CCDCLog "Starting lateral movement detection..." "INFO"
+    Write-SecLog "Starting lateral movement detection..." "INFO"
     
     $lateralMoveJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -275,11 +275,11 @@ function Start-LateralMovementDetection {
     } -ArgumentList $Global:LogPath
     
     $Global:DetectionJobs += $lateralMoveJob
-    Write-CCDCLog "Lateral movement detection started (Job ID: $($lateralMoveJob.Id))" "SUCCESS"
+    Write-SecLog "Lateral movement detection started (Job ID: $($lateralMoveJob.Id))" "SUCCESS"
 }
 
 function Start-PersistenceDetection {
-    Write-CCDCLog "Starting persistence detection..." "INFO"
+    Write-SecLog "Starting persistence detection..." "INFO"
     
     # Create baseline of current state
     $baseline = @{
@@ -395,11 +395,11 @@ function Start-PersistenceDetection {
     } -ArgumentList $Global:LogPath, "$Global:LogPath\persistence_baseline.xml"
     
     $Global:DetectionJobs += $persistenceJob
-    Write-CCDCLog "Persistence detection started (Job ID: $($persistenceJob.Id))" "SUCCESS"
+    Write-SecLog "Persistence detection started (Job ID: $($persistenceJob.Id))" "SUCCESS"
 }
 
 function Start-LOLBinDetection {
-    Write-CCDCLog "Starting Living-Off-The-Land binary detection..." "INFO"
+    Write-SecLog "Starting Living-Off-The-Land binary detection..." "INFO"
     
     $lolbinJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -468,11 +468,11 @@ function Start-LOLBinDetection {
     } -ArgumentList $Global:LogPath
     
     $Global:DetectionJobs += $lolbinJob
-    Write-CCDCLog "LOLBin detection started (Job ID: $($lolbinJob.Id))" "SUCCESS"
+    Write-SecLog "LOLBin detection started (Job ID: $($lolbinJob.Id))" "SUCCESS"
 }
 
 function Start-TamperingDetection {
-    Write-CCDCLog "Starting firewall and logging tampering detection..." "INFO"
+    Write-SecLog "Starting firewall and logging tampering detection..." "INFO"
     
     $tamperingJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -529,11 +529,11 @@ function Start-TamperingDetection {
     } -ArgumentList $Global:LogPath
     
     $Global:DetectionJobs += $tamperingJob
-    Write-CCDCLog "Tampering detection started (Job ID: $($tamperingJob.Id))" "SUCCESS"
+    Write-SecLog "Tampering detection started (Job ID: $($tamperingJob.Id))" "SUCCESS"
 }
 
 function Start-ADThreatDetection {
-    Write-CCDCLog "Starting AD-specific threat detection..." "INFO"
+    Write-SecLog "Starting AD-specific threat detection..." "INFO"
     
     $adThreatJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -594,13 +594,13 @@ function Start-ADThreatDetection {
     } -ArgumentList $Global:LogPath
     
     $Global:DetectionJobs += $adThreatJob
-    Write-CCDCLog "AD threat detection started (Job ID: $($adThreatJob.Id))" "SUCCESS"
+    Write-SecLog "AD threat detection started (Job ID: $($adThreatJob.Id))" "SUCCESS"
 }
 
 function Start-HoneypotDeception {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Setting up honeypot and deception layer..." "INFO"
+    Write-SecLog "Setting up honeypot and deception layer..." "INFO"
     
     try {
         # Create honeypot user account
@@ -613,7 +613,7 @@ function Start-HoneypotDeception {
                 
                 New-ADUser -Name $honeypotName -SamAccountName $honeypotName -Enabled $true -AccountPassword $honeypotPassword -Description "Service Account - Do Not Use"
                 
-                Write-CCDCLog "Honeypot AD account created: $honeypotName" "SUCCESS"
+                Write-SecLog "Honeypot AD account created: $honeypotName" "SUCCESS"
                 $Global:HoneypotCreated = $true
                 
                 # Monitor honeypot account usage
@@ -656,7 +656,7 @@ function Start-HoneypotDeception {
                 $Global:DetectionJobs += $honeypotJob
                 
             } catch {
-                Write-CCDCLog "Failed to create AD honeypot: $($_.Exception.Message)" "WARN"
+                Write-SecLog "Failed to create AD honeypot: $($_.Exception.Message)" "WARN"
             }
         }
         
@@ -675,26 +675,26 @@ function Start-HoneypotDeception {
         $acl.SetAuditRule($auditRule)
         Set-Acl $canaryFile $acl
         
-        Write-CCDCLog "Canary file created: $canaryFile" "SUCCESS"
+        Write-SecLog "Canary file created: $canaryFile" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Honeypot setup failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Honeypot setup failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Stop-DetectionModule {
-    Write-CCDCLog "Stopping detection jobs..." "INFO"
+    Write-SecLog "Stopping detection jobs..." "INFO"
     
     foreach ($job in $Global:DetectionJobs) {
         try {
             Stop-Job -Job $job -ErrorAction SilentlyContinue
             Remove-Job -Job $job -ErrorAction SilentlyContinue
-            Write-CCDCLog "Stopped detection job: $($job.Id)" "INFO"
+            Write-SecLog "Stopped detection job: $($job.Id)" "INFO"
         } catch {
-            Write-CCDCLog "Error stopping detection job $($job.Id): $($_.Exception.Message)" "WARN"
+            Write-SecLog "Error stopping detection job $($job.Id): $($_.Exception.Message)" "WARN"
         }
     }
     
     $Global:DetectionJobs = @()
-    Write-CCDCLog "Detection module stopped" "SUCCESS"
+    Write-SecLog "Detection module stopped" "SUCCESS"
 }

@@ -30,7 +30,7 @@ $ModulePath = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$ModulePath\Config\Configuration.ps1"
 Get-ChildItem "$ModulePath\Modules\*.ps1" | ForEach-Object { . $_.FullName }
 
-function Write-CCDCLog {
+function Write-SecLog {
     param([string]$Message, [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS")]$Level = "INFO")
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logEntry = "[$timestamp] [$Level] $Message"
@@ -45,12 +45,12 @@ function Write-CCDCLog {
 }
 
 function Initialize-Tool {
-    Write-CCDCLog "AEGIS v$Global:ToolVersion" "SUCCESS"
+    Write-SecLog "AEGIS v$Global:ToolVersion" "SUCCESS"
     @($Global:BackupPath, $Global:LogPath, "$ModulePath\Config", "$ModulePath\Reports") | ForEach-Object {
         if (!(Test-Path $_)) { New-Item -Path $_ -ItemType Directory -Force | Out-Null }
     }
     if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        Write-CCDCLog "Administrator privileges required" "ERROR"
+        Write-SecLog "Administrator privileges required" "ERROR"
         exit 1
     }
 }
@@ -87,13 +87,13 @@ function Start-AdaptiveTool {
         Start-IncidentResponseModule -SystemProfile $Global:SystemProfile
         Start-ScoringValidation -SystemProfile $Global:SystemProfile
         
-        Write-CCDCLog "All systems operational" "SUCCESS"
+        Write-SecLog "All systems operational" "SUCCESS"
         
         if (-not $TestMode) {
             while ($true) { Start-Sleep -Seconds 30 }
         }
     } catch {
-        Write-CCDCLog "ERROR: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "ERROR: $($_.Exception.Message)" "ERROR"
         if ($Global:DetectionActive) { Stop-DetectionModule }
     }
 }

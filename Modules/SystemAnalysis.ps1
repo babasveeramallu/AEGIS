@@ -4,7 +4,7 @@
 function Invoke-AdvancedSystemAnalysis {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting advanced security state analysis..." "INFO"
+    Write-SecLog "Starting advanced security state analysis..." "INFO"
     
     # Enhanced system profile with security state
     $advancedProfile = [PSCustomObject]@{
@@ -33,12 +33,12 @@ function Invoke-AdvancedSystemAnalysis {
     # Generate security posture score
     $advancedProfile.SecurityPostureScore = Calculate-SecurityPostureScore -Profile $advancedProfile
     
-    Write-CCDCLog "Advanced system analysis completed" "SUCCESS"
+    Write-SecLog "Advanced system analysis completed" "SUCCESS"
     return $advancedProfile
 }
 
 function Get-LocalAdministratorAnalysis {
-    Write-CCDCLog "Analyzing local administrator groups..." "INFO"
+    Write-SecLog "Analyzing local administrator groups..." "INFO"
     
     try {
         $adminAnalysis = @{
@@ -75,17 +75,17 @@ function Get-LocalAdministratorAnalysis {
             $adminAnalysis.LocalAdmins += $adminInfo
         }
         
-        Write-CCDCLog "Found $($adminAnalysis.LocalAdmins.Count) administrators, $($adminAnalysis.UnexpectedUsers.Count) unexpected" "INFO"
+        Write-SecLog "Found $($adminAnalysis.LocalAdmins.Count) administrators, $($adminAnalysis.UnexpectedUsers.Count) unexpected" "INFO"
         return $adminAnalysis
         
     } catch {
-        Write-CCDCLog "Failed to analyze local administrators: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to analyze local administrators: $($_.Exception.Message)" "ERROR"
         return @{ Error = $_.Exception.Message }
     }
 }
 
 function Get-LSAProtectionState {
-    Write-CCDCLog "Checking LSASS protection state..." "INFO"
+    Write-SecLog "Checking LSASS protection state..." "INFO"
     
     try {
         $lsaPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
@@ -117,17 +117,17 @@ function Get-LSAProtectionState {
             $lsaState.RestrictedAdminDisabled = $true
         }
         
-        Write-CCDCLog "LSASS Protection: RunAsPPL=$($lsaState.RunAsPPL), Protected=$($lsaState.ProcessProtected)" "INFO"
+        Write-SecLog "LSASS Protection: RunAsPPL=$($lsaState.RunAsPPL), Protected=$($lsaState.ProcessProtected)" "INFO"
         return $lsaState
         
     } catch {
-        Write-CCDCLog "Failed to check LSASS protection: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to check LSASS protection: $($_.Exception.Message)" "ERROR"
         return @{ Error = $_.Exception.Message }
     }
 }
 
 function Get-NTLMConfiguration {
-    Write-CCDCLog "Analyzing NTLM configuration..." "INFO"
+    Write-SecLog "Analyzing NTLM configuration..." "INFO"
     
     try {
         $lsaPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
@@ -162,18 +162,18 @@ function Get-NTLMConfiguration {
         }
         
         $riskLevel = if ($ntlmConfig.NTLMv1Enabled) { "HIGH" } elseif (-not $ntlmConfig.NTLMRestricted) { "MEDIUM" } else { "LOW" }
-        Write-CCDCLog "NTLM Risk Level: $riskLevel (v1Enabled=$($ntlmConfig.NTLMv1Enabled), Restricted=$($ntlmConfig.NTLMRestricted))" "INFO"
+        Write-SecLog "NTLM Risk Level: $riskLevel (v1Enabled=$($ntlmConfig.NTLMv1Enabled), Restricted=$($ntlmConfig.NTLMRestricted))" "INFO"
         
         return $ntlmConfig
         
     } catch {
-        Write-CCDCLog "Failed to analyze NTLM configuration: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to analyze NTLM configuration: $($_.Exception.Message)" "ERROR"
         return @{ Error = $_.Exception.Message }
     }
 }
 
 function Get-AuditPolicyState {
-    Write-CCDCLog "Checking audit policy configuration..." "INFO"
+    Write-SecLog "Checking audit policy configuration..." "INFO"
     
     try {
         # Get current audit policy
@@ -201,18 +201,18 @@ function Get-AuditPolicyState {
         }
         
         $auditState.CompliancePercentage = [Math]::Round(($auditState.ComplianceScore / 8) * 100, 1)
-        Write-CCDCLog "Audit Policy Compliance: $($auditState.CompliancePercentage)%" "INFO"
+        Write-SecLog "Audit Policy Compliance: $($auditState.CompliancePercentage)%" "INFO"
         
         return $auditState
         
     } catch {
-        Write-CCDCLog "Failed to check audit policy: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to check audit policy: $($_.Exception.Message)" "ERROR"
         return @{ Error = $_.Exception.Message }
     }
 }
 
 function Get-VirtualizationBasedSecurityState {
-    Write-CCDCLog "Checking Virtualization-Based Security state..." "INFO"
+    Write-SecLog "Checking Virtualization-Based Security state..." "INFO"
     
     try {
         $vbsState = @{
@@ -246,17 +246,17 @@ function Get-VirtualizationBasedSecurityState {
             }
         }
         
-        Write-CCDCLog "VBS State: Supported=$($vbsState.Supported), Enabled=$($vbsState.Enabled), CredGuard=$($vbsState.CredentialGuard)" "INFO"
+        Write-SecLog "VBS State: Supported=$($vbsState.Supported), Enabled=$($vbsState.Enabled), CredGuard=$($vbsState.CredentialGuard)" "INFO"
         return $vbsState
         
     } catch {
-        Write-CCDCLog "Failed to check VBS state: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to check VBS state: $($_.Exception.Message)" "ERROR"
         return @{ Error = $_.Exception.Message }
     }
 }
 
 function Get-HighRiskKernelDrivers {
-    Write-CCDCLog "Scanning for high-risk kernel drivers..." "INFO"
+    Write-SecLog "Scanning for high-risk kernel drivers..." "INFO"
     
     try {
         # Known high-risk or suspicious drivers
@@ -298,21 +298,21 @@ function Get-HighRiskKernelDrivers {
         }
         
         if ($riskDrivers.Count -gt 0) {
-            Write-CCDCLog "ALERT: Found $($riskDrivers.Count) high-risk kernel drivers!" "ERROR"
+            Write-SecLog "ALERT: Found $($riskDrivers.Count) high-risk kernel drivers!" "ERROR"
         } else {
-            Write-CCDCLog "No high-risk kernel drivers detected" "SUCCESS"
+            Write-SecLog "No high-risk kernel drivers detected" "SUCCESS"
         }
         
         return $riskDrivers
         
     } catch {
-        Write-CCDCLog "Failed to scan kernel drivers: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to scan kernel drivers: $($_.Exception.Message)" "ERROR"
         return @()
     }
 }
 
 function Get-HoneypotOpportunities {
-    Write-CCDCLog "Identifying honeypot deployment opportunities..." "INFO"
+    Write-SecLog "Identifying honeypot deployment opportunities..." "INFO"
     
     try {
         $opportunities = @{
@@ -368,11 +368,11 @@ function Get-HoneypotOpportunities {
             }
         }
         
-        Write-CCDCLog "Honeypot opportunities: $($opportunities.ADHoneypotAccounts.Count) AD accounts, $($opportunities.FileSystemTraps.Count) file traps" "INFO"
+        Write-SecLog "Honeypot opportunities: $($opportunities.ADHoneypotAccounts.Count) AD accounts, $($opportunities.FileSystemTraps.Count) file traps" "INFO"
         return $opportunities
         
     } catch {
-        Write-CCDCLog "Failed to identify honeypot opportunities: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to identify honeypot opportunities: $($_.Exception.Message)" "ERROR"
         return @{}
     }
 }

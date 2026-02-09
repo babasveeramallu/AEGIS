@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Smart Session Security for CCDC - Balance security without breaking operations
+    Smart Session Security for SecOps - Balance security without breaking operations
     
 .DESCRIPTION
     Implements session monitoring and selective lockouts instead of blanket auto-logout
@@ -55,7 +55,7 @@ function Start-SuspiciousSessionMonitor {
                 Start-Sleep -Seconds 120
             }
         }
-    } -ArgumentList "C:\CCDC-Logs"
+    } -ArgumentList "C:\Security-Logs"
     
     Write-Host "Monitoring sessions for suspicious activity" -ForegroundColor Green
     return $job
@@ -114,13 +114,13 @@ function Enable-SessionAuditing {
 Write-Host @"
 
 ╔════════════════════════════════════════════════════════════╗
-║          SMART SESSION SECURITY FOR CCDC                   ║
+║          SMART SESSION SECURITY FOR SecOps                   ║
 ║  (Doesn't break operations like auto-logout would)        ║
 ╚════════════════════════════════════════════════════════════╝
 
 "@ -ForegroundColor Cyan
 
-Write-Host "Recommended CCDC Session Security:`n" -ForegroundColor White
+Write-Host "Recommended SecOps Session Security:`n" -ForegroundColor White
 
 Write-Host "✓ Screen lock after 15 min idle (not logout)" -ForegroundColor Green
 Write-Host "✓ Monitor suspicious sessions" -ForegroundColor Green

@@ -216,7 +216,7 @@ function Update-ChecklistItem {
     $item = $Global:CompetitionChecklist | Where-Object { $_.ID -eq $ItemID }
     if ($item) {
         $item.Status = $Status
-        Write-CCDCLog "Checklist item $ItemID updated: $($item.Task) = $Status" "INFO"
+        Write-SecLog "Checklist item $ItemID updated: $($item.Task) = $Status" "INFO"
     }
 }
 
@@ -234,7 +234,7 @@ function Get-ChecklistStatus {
 }
 
 function Show-CompetitionChecklist {
-    Write-Host "`n=== CCDC COMPETITION-DAY CHECKLIST ===" -ForegroundColor Cyan
+    Write-Host "`n=== SecOps COMPETITION-DAY CHECKLIST ===" -ForegroundColor Cyan
     Write-Host "Run through this as your tool executes each phase.`n" -ForegroundColor White
     
     foreach ($item in $Global:CompetitionChecklist) {
@@ -301,7 +301,7 @@ function Stop-ProcessSafe {
 
 function Export-EventIDReference {
     $eventReference = @"
-CCDC 2026 - Key Event ID Reference
+SecOps 2026 - Key Event ID Reference
 These are the Windows event IDs your detection module must watch.
 
 EVENT ID | LOG      | MEANING                        | RED TEAM RELEVANCE
@@ -314,5 +314,5 @@ EVENT ID | LOG      | MEANING                        | RED TEAM RELEVANCE
     }
     
     $eventReference | Out-File "$Global:LogPath\EventID_Reference.txt"
-    Write-CCDCLog "Event ID reference exported to $Global:LogPath\EventID_Reference.txt" "INFO"
+    Write-SecLog "Event ID reference exported to $Global:LogPath\EventID_Reference.txt" "INFO"
 }

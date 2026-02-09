@@ -9,7 +9,7 @@ function Invoke-ComprehensiveTestSuite {
         [switch]$MalwareTests = $true
     )
     
-    Write-Host "=== CCDC TOOL SECURITY TEST SUITE ===" -ForegroundColor Cyan
+    Write-Host "=== SecOps TOOL SECURITY TEST SUITE ===" -ForegroundColor Cyan
     Write-Host "Testing all components for vulnerabilities and functionality`n" -ForegroundColor White
     
     $testResults = @{
@@ -400,7 +400,7 @@ function Test-RegistrySecurity {
     
     try {
         # Test registry operations safety
-        $testKey = "HKCU:\Software\CCDCTestKey"
+        $testKey = "HKCU:\Software\SecOpsTestKey"
         
         try {
             # Test safe registry operations
@@ -550,7 +550,7 @@ function Test-BackupFunctionality {
     
     try {
         # Test backup creation
-        $testBackupPath = "$env:TEMP\CCDCTestBackup"
+        $testBackupPath = "$env:TEMP\SecOpsTestBackup"
         
         if (!(Test-Path $testBackupPath)) {
             New-Item -Path $testBackupPath -ItemType Directory -Force | Out-Null

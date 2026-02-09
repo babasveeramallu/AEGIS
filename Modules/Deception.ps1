@@ -1,11 +1,11 @@
 # Enhanced Honeypot & Deception Module
-# Based on CCDC expert insights and honeypot best practices
+# Based on SecOps expert insights and honeypot best practices
 # References: https://pswalia2u.medium.com/creating-and-configuring-a-honeypot-account-in-active-directory-94153385275d
 
 function Deploy-AdvancedHoneypots {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Deploying advanced honeypot and deception layer..." "INFO"
+    Write-SecLog "Deploying advanced honeypot and deception layer..." "INFO"
     
     try {
         # 1. AD Honeypot Accounts (multiple types)
@@ -31,15 +31,15 @@ function Deploy-AdvancedHoneypots {
         # 7. SSH Honeypot (if applicable)
         Deploy-SSHHoneypot
         
-        Write-CCDCLog "Advanced honeypot deployment completed" "SUCCESS"
+        Write-SecLog "Advanced honeypot deployment completed" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-ADHoneypotAccounts {
-    Write-CCDCLog "Creating AD honeypot accounts..." "INFO"
+    Write-SecLog "Creating AD honeypot accounts..." "INFO"
     
     try {
         Import-Module ActiveDirectory -ErrorAction Stop
@@ -93,9 +93,9 @@ function Deploy-ADHoneypotAccounts {
                 foreach ($group in $account.Groups) {
                     try {
                         Add-ADGroupMember -Identity $group -Members $newUser -ErrorAction SilentlyContinue
-                        Write-CCDCLog "Added honeypot $($account.Name) to $group - HIGH RISK HONEYPOT" "WARN"
+                        Write-SecLog "Added honeypot $($account.Name) to $group - HIGH RISK HONEYPOT" "WARN"
                     } catch {
-                        Write-CCDCLog "Could not add $($account.Name) to $group" "WARN"
+                        Write-SecLog "Could not add $($account.Name) to $group" "WARN"
                     }
                 }
                 
@@ -109,25 +109,25 @@ function Deploy-ADHoneypotAccounts {
                     Created = Get-Date
                 }
                 
-                Write-CCDCLog "Created AD honeypot: $($account.Name)" "SUCCESS"
+                Write-SecLog "Created AD honeypot: $($account.Name)" "SUCCESS"
                 
             } catch {
-                Write-CCDCLog "Failed to create honeypot $($account.Name): $($_.Exception.Message)" "ERROR"
+                Write-SecLog "Failed to create honeypot $($account.Name): $($_.Exception.Message)" "ERROR"
             }
         }
         
         # Create honeypot monitoring job
         Start-HoneypotMonitoring
         
-        Write-CCDCLog "Created $($Global:DeployedHoneypots.Count) AD honeypot accounts" "SUCCESS"
+        Write-SecLog "Created $($Global:DeployedHoneypots.Count) AD honeypot accounts" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "AD honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "AD honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-FileSystemHoneypots {
-    Write-CCDCLog "Deploying file system honeypots..." "INFO"
+    Write-SecLog "Deploying file system honeypots..." "INFO"
     
     try {
         $honeypotFiles = @(
@@ -217,20 +217,20 @@ MIIEpAIBAAKCAQEA2K8H9F7J2L5M3N8P9Q1R2S3T4U5V6W7X8Y9Z0A1B2C3D4E5F
                     Created = Get-Date
                 }
                 
-                Write-CCDCLog "Created file honeypot: $($file.Path)" "SUCCESS"
+                Write-SecLog "Created file honeypot: $($file.Path)" "SUCCESS"
                 
             } catch {
-                Write-CCDCLog "Failed to create file honeypot $($file.Path): $($_.Exception.Message)" "ERROR"
+                Write-SecLog "Failed to create file honeypot $($file.Path): $($_.Exception.Message)" "ERROR"
             }
         }
         
     } catch {
-        Write-CCDCLog "File system honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "File system honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-NetworkShareHoneypots {
-    Write-CCDCLog "Deploying network share honeypots..." "INFO"
+    Write-SecLog "Deploying network share honeypots..." "INFO"
     
     try {
         $honeypotShares = @(
@@ -288,20 +288,20 @@ function Deploy-NetworkShareHoneypots {
                     Created = Get-Date
                 }
                 
-                Write-CCDCLog "Created network share honeypot: $($share.Name)" "SUCCESS"
+                Write-SecLog "Created network share honeypot: $($share.Name)" "SUCCESS"
                 
             } catch {
-                Write-CCDCLog "Failed to create share honeypot $($share.Name): $($_.Exception.Message)" "ERROR"
+                Write-SecLog "Failed to create share honeypot $($share.Name): $($_.Exception.Message)" "ERROR"
             }
         }
         
     } catch {
-        Write-CCDCLog "Network share honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Network share honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-RegistryHoneypots {
-    Write-CCDCLog "Deploying registry honeypots..." "INFO"
+    Write-SecLog "Deploying registry honeypots..." "INFO"
     
     try {
         $registryTraps = @(
@@ -349,7 +349,7 @@ function Deploy-RegistryHoneypots {
                     $acl.SetAuditRule($auditRule)
                     Set-Acl $trap.Path $acl
                 } catch {
-                    Write-CCDCLog "Could not set registry auditing for $($trap.Path)" "WARN"
+                    Write-SecLog "Could not set registry auditing for $($trap.Path)" "WARN"
                 }
                 
                 $Global:DeployedHoneypots += [PSCustomObject]@{
@@ -359,20 +359,20 @@ function Deploy-RegistryHoneypots {
                     Created = Get-Date
                 }
                 
-                Write-CCDCLog "Created registry honeypot: $($trap.Path)" "SUCCESS"
+                Write-SecLog "Created registry honeypot: $($trap.Path)" "SUCCESS"
                 
             } catch {
-                Write-CCDCLog "Failed to create registry honeypot $($trap.Path): $($_.Exception.Message)" "ERROR"
+                Write-SecLog "Failed to create registry honeypot $($trap.Path): $($_.Exception.Message)" "ERROR"
             }
         }
         
     } catch {
-        Write-CCDCLog "Registry honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Registry honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-ServiceHoneypots {
-    Write-CCDCLog "Deploying service honeypots..." "INFO"
+    Write-SecLog "Deploying service honeypots..." "INFO"
     
     try {
         # Create fake service that looks valuable but does nothing
@@ -404,19 +404,19 @@ while (`$true) {
                 Created = Get-Date
             }
             
-            Write-CCDCLog "Created service honeypot: $serviceName" "SUCCESS"
+            Write-SecLog "Created service honeypot: $serviceName" "SUCCESS"
             
         } catch {
-            Write-CCDCLog "Failed to create service honeypot: $($_.Exception.Message)" "ERROR"
+            Write-SecLog "Failed to create service honeypot: $($_.Exception.Message)" "ERROR"
         }
         
     } catch {
-        Write-CCDCLog "Service honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Service honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-CredentialHoneypots {
-    Write-CCDCLog "Deploying credential honeypots in common locations..." "INFO"
+    Write-SecLog "Deploying credential honeypots in common locations..." "INFO"
     
     try {
         # Common locations where admins might store credentials
@@ -479,28 +479,28 @@ password=MonitorSvc123$
                     Created = Get-Date
                 }
                 
-                Write-CCDCLog "Created credential honeypot: $($location.Path)" "SUCCESS"
+                Write-SecLog "Created credential honeypot: $($location.Path)" "SUCCESS"
                 
             } catch {
-                Write-CCDCLog "Failed to create credential honeypot $($location.Path): $($_.Exception.Message)" "ERROR"
+                Write-SecLog "Failed to create credential honeypot $($location.Path): $($_.Exception.Message)" "ERROR"
             }
         }
         
     } catch {
-        Write-CCDCLog "Credential honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Credential honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Deploy-SSHHoneypot {
-    Write-CCDCLog "Checking for SSH honeypot opportunities..." "INFO"
+    Write-SecLog "Checking for SSH honeypot opportunities..." "INFO"
     
     try {
         # Check if OpenSSH is installed (common in newer Windows)
         $sshService = Get-Service -Name "sshd" -ErrorAction SilentlyContinue
         
         if ($sshService) {
-            Write-CCDCLog "OpenSSH detected - consider deploying SSH honeypot similar to tunnelbees" "INFO"
-            Write-CCDCLog "Reference: https://github.com/JakeGinesin/tunnelbees" "INFO"
+            Write-SecLog "OpenSSH detected - consider deploying SSH honeypot similar to tunnelbees" "INFO"
+            Write-SecLog "Reference: https://github.com/JakeGinesin/tunnelbees" "INFO"
             
             # Create fake SSH keys as honeypot
             $sshKeyPath = "C:\Users\Administrator\.ssh\id_rsa"
@@ -537,16 +537,16 @@ $(Get-HoneypotPassword -AccountName "SSH_KEY_2")
                 Created = Get-Date
             }
             
-            Write-CCDCLog "Created SSH key honeypot: $sshKeyPath" "SUCCESS"
+            Write-SecLog "Created SSH key honeypot: $sshKeyPath" "SUCCESS"
         }
         
     } catch {
-        Write-CCDCLog "SSH honeypot deployment failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "SSH honeypot deployment failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Start-HoneypotMonitoring {
-    Write-CCDCLog "Starting enhanced honeypot monitoring..." "INFO"
+    Write-SecLog "Starting enhanced honeypot monitoring..." "INFO"
     
     $honeypotMonitorJob = Start-Job -ScriptBlock {
         param($LogPath, $DeployedHoneypots)
@@ -635,7 +635,7 @@ function Start-HoneypotMonitoring {
     } -ArgumentList $Global:LogPath, $Global:DeployedHoneypots
     
     $Global:DetectionJobs += $honeypotMonitorJob
-    Write-CCDCLog "Enhanced honeypot monitoring started (Job ID: $($honeypotMonitorJob.Id))" "SUCCESS"
+    Write-SecLog "Enhanced honeypot monitoring started (Job ID: $($honeypotMonitorJob.Id))" "SUCCESS"
 }
 
 function Get-HoneypotStatus {

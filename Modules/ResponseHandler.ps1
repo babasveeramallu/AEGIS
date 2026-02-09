@@ -8,7 +8,7 @@ $Global:AutoResponseEnabled = $true
 function Start-IncidentResponseModule {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting incident response module..." "INFO"
+    Write-SecLog "Starting incident response module..." "INFO"
     
     try {
         # Start alert processing job
@@ -71,10 +71,10 @@ function Start-IncidentResponseModule {
         } -ArgumentList $Global:LogPath, $Global:BackupPath
         
         $Global:MonitoringJobs += $irJob
-        Write-CCDCLog "Incident response processing started (Job ID: $($irJob.Id))" "SUCCESS"
+        Write-SecLog "Incident response processing started (Job ID: $($irJob.Id))" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Failed to start incident response module: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to start incident response module: $($_.Exception.Message)" "ERROR"
     }
 }
 
@@ -150,7 +150,7 @@ function Invoke-AutoResponse {
         [string]$Action
     )
     
-    Write-CCDCLog "Executing auto-response: $Action for alert: $($Alert.AlertType)" "INFO"
+    Write-SecLog "Executing auto-response: $Action for alert: $($Alert.AlertType)" "INFO"
     
     try {
         switch ($Action) {
@@ -159,7 +159,7 @@ function Invoke-AutoResponse {
                 if ($safeIP -and $safeIP -ne '-' -and $safeIP -ne '127.0.0.1' -and $safeIP -match "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
                     $ruleName = "BLOCK_$($safeIP.Replace('.', '_'))"
                     netsh advfirewall firewall add rule name=$ruleName dir=in action=block remoteip=$safeIP
-                    Write-CCDCLog "Blocked source IP: $safeIP" "SUCCESS"
+                    Write-SecLog "Blocked source IP: $safeIP" "SUCCESS"
                     return "SUCCESS: Blocked IP $safeIP"
                 } else {
                     return "SKIPPED: Invalid or local IP address"
@@ -169,7 +169,7 @@ function Invoke-AutoResponse {
             "KILL_PROCESS" {
                 if ($Alert.ProcessId) {
                     if (Stop-ProcessSafe -Id $Alert.ProcessId -Name ($Alert.ProcessName -replace '[^\w\-\.]', '')) {
-                        Write-CCDCLog "Killed suspicious process: $($Alert.ProcessId)" "SUCCESS"
+                        Write-SecLog "Killed suspicious process: $($Alert.ProcessId)" "SUCCESS"
                         return "SUCCESS: Process $($Alert.ProcessId) terminated"
                     } else {
                         return "FAILED: Could not terminate process $($Alert.ProcessId)"
@@ -183,7 +183,7 @@ function Invoke-AutoResponse {
                 if ($Alert.TaskName) {
                     try {
                         Unregister-ScheduledTask -TaskName $Alert.TaskName -Confirm:$false
-                        Write-CCDCLog "Deleted suspicious scheduled task: $($Alert.TaskName)" "SUCCESS"
+                        Write-SecLog "Deleted suspicious scheduled task: $($Alert.TaskName)" "SUCCESS"
                         return "SUCCESS: Task $($Alert.TaskName) deleted"
                     } catch {
                         return "FAILED: Could not delete task $($Alert.TaskName)"
@@ -199,7 +199,7 @@ function Invoke-AutoResponse {
                     Set-MpPreference -DisableRealtimeMonitoring $false
                     Set-MpPreference -DisableBehaviorMonitoring $false
                     Set-MpPreference -DisableBlockAtFirstSeen $false
-                    Write-CCDCLog "Restored Windows Defender configuration" "SUCCESS"
+                    Write-SecLog "Restored Windows Defender configuration" "SUCCESS"
                     return "SUCCESS: Defender configuration restored"
                 } catch {
                     return "FAILED: Could not restore Defender configuration"
@@ -209,18 +209,18 @@ function Invoke-AutoResponse {
             "ALERT_AND_LOG" {
                 # Generate incident report
                 $incident = Generate-IncidentReport -Alert $Alert
-                Write-CCDCLog "Generated incident report for: $($Alert.AlertType)" "SUCCESS"
+                Write-SecLog "Generated incident report for: $($Alert.AlertType)" "SUCCESS"
                 return "SUCCESS: Incident report generated"
             }
             
             default {
-                Write-CCDCLog "Unknown auto-response action: $Action" "WARN"
+                Write-SecLog "Unknown auto-response action: $Action" "WARN"
                 return "UNKNOWN: Action not implemented"
             }
         }
         
     } catch {
-        Write-CCDCLog "Auto-response failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Auto-response failed: $($_.Exception.Message)" "ERROR"
         return "ERROR: $($_.Exception.Message)"
     }
 }
@@ -337,7 +337,7 @@ END OF REPORT
     
     $pdfSummary | Out-File "$Global:LogPath\Reports\$reportId.txt"
     
-    Write-CCDCLog "Incident report generated: $reportId" "SUCCESS"
+    Write-SecLog "Incident report generated: $reportId" "SUCCESS"
     return $report
 }
 
@@ -437,14 +437,14 @@ function Approve-OperatorAction {
         [string]$Reason
     )
     
-    Write-CCDCLog "Operator decision for alert $AlertId : Approved=$Approved, Reason=$Reason" "INFO"
+    Write-SecLog "Operator decision for alert $AlertId : Approved=$Approved, Reason=$Reason" "INFO"
     
     if ($Approved) {
         # Execute the recommended action
         # This would need to be implemented based on the specific action
-        Write-CCDCLog "Executing operator-approved action for alert $AlertId" "INFO"
+        Write-SecLog "Executing operator-approved action for alert $AlertId" "INFO"
     } else {
-        Write-CCDCLog "Operator rejected action for alert $AlertId : $Reason" "INFO"
+        Write-SecLog "Operator rejected action for alert $AlertId : $Reason" "INFO"
     }
     
     # Log the decision

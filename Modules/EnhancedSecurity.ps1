@@ -1,10 +1,10 @@
 # Enhanced Hardening Module - Advanced Security Controls
-# Based on professor recommendations and CCDC expert insights
+# Based on professor recommendations and SecOps expert insights
 
 function Invoke-AdvancedHardening {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "=== ADVANCED HARDENING (PROFESSOR RECOMMENDATIONS) ===" "INFO"
+    Write-SecLog "=== ADVANCED HARDENING (PROFESSOR RECOMMENDATIONS) ===" "INFO"
     
     # 1. Enable LSASS Protected Process
     Enable-LSASSProtection
@@ -24,11 +24,11 @@ function Invoke-AdvancedHardening {
     # 6. Disable Legacy Cipher Suites
     Disable-LegacyCipherSuites
     
-    Write-CCDCLog "Advanced hardening completed" "SUCCESS"
+    Write-SecLog "Advanced hardening completed" "SUCCESS"
 }
 
 function Enable-LSASSProtection {
-    Write-CCDCLog "Enabling LSASS Protected Process..." "INFO"
+    Write-SecLog "Enabling LSASS Protected Process..." "INFO"
     
     try {
         # Enable LSA Protection (RunAsPPL)
@@ -39,16 +39,16 @@ function Enable-LSASSProtection {
         Set-ItemProperty -Path $lsaPath -Name "DisableRestrictedAdmin" -Value 0 -Type DWord
         Set-ItemProperty -Path $lsaPath -Name "DisableRestrictedAdminOutboundCreds" -Value 1 -Type DWord
         
-        Write-CCDCLog "LSASS protection enabled (requires reboot)" "SUCCESS"
+        Write-SecLog "LSASS protection enabled (requires reboot)" "SUCCESS"
         Update-ChecklistItem -ItemID 23 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to enable LSASS protection: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to enable LSASS protection: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Disable-NTLMv1AndRestrict {
-    Write-CCDCLog "Disabling NTLMv1 and restricting NTLM authentication..." "INFO"
+    Write-SecLog "Disabling NTLMv1 and restricting NTLM authentication..." "INFO"
     
     try {
         $lsaPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
@@ -66,16 +66,16 @@ function Disable-NTLMv1AndRestrict {
         # Force NTLMv2 only
         Set-ItemProperty -Path $lsaPath -Name "LmCompatibilityLevel" -Value 5 -Type DWord
         
-        Write-CCDCLog "NTLMv1 disabled, NTLM restricted to v2 only" "SUCCESS"
+        Write-SecLog "NTLMv1 disabled, NTLM restricted to v2 only" "SUCCESS"
         Update-ChecklistItem -ItemID 24 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to configure NTLM restrictions: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to configure NTLM restrictions: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Enable-AttackSurfaceReduction {
-    Write-CCDCLog "Enabling Attack Surface Reduction rules..." "INFO"
+    Write-SecLog "Enabling Attack Surface Reduction rules..." "INFO"
     
     try {
         # ASR Rules (Windows Defender required)
@@ -106,16 +106,16 @@ function Enable-AttackSurfaceReduction {
             }
         }
         
-        Write-CCDCLog "Attack Surface Reduction rules enabled" "SUCCESS"
+        Write-SecLog "Attack Surface Reduction rules enabled" "SUCCESS"
         Update-ChecklistItem -ItemID 25 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to enable ASR rules: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to enable ASR rules: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Disable-AnonymousSIDEnumeration {
-    Write-CCDCLog "Disabling anonymous SID enumeration..." "INFO"
+    Write-SecLog "Disabling anonymous SID enumeration..." "INFO"
     
     try {
         $lsaPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
@@ -125,35 +125,35 @@ function Disable-AnonymousSIDEnumeration {
         Set-ItemProperty -Path $lsaPath -Name "RestrictAnonymousSAM" -Value 1 -Type DWord
         Set-ItemProperty -Path $lsaPath -Name "RestrictAnonymous" -Value 2 -Type DWord
         
-        Write-CCDCLog "Anonymous SID enumeration disabled" "SUCCESS"
+        Write-SecLog "Anonymous SID enumeration disabled" "SUCCESS"
         Update-ChecklistItem -ItemID 26 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to disable anonymous SID enumeration: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to disable anonymous SID enumeration: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Disable-RemoteRegistry {
-    Write-CCDCLog "Disabling Remote Registry service..." "INFO"
+    Write-SecLog "Disabling Remote Registry service..." "INFO"
     
     try {
         $service = Get-Service -Name "RemoteRegistry" -ErrorAction SilentlyContinue
         if ($service) {
             Stop-Service -Name "RemoteRegistry" -Force -ErrorAction SilentlyContinue
             Set-Service -Name "RemoteRegistry" -StartupType Disabled
-            Write-CCDCLog "Remote Registry service disabled" "SUCCESS"
+            Write-SecLog "Remote Registry service disabled" "SUCCESS"
         } else {
-            Write-CCDCLog "Remote Registry service not found" "INFO"
+            Write-SecLog "Remote Registry service not found" "INFO"
         }
         Update-ChecklistItem -ItemID 27 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to disable Remote Registry: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to disable Remote Registry: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Disable-LegacyCipherSuites {
-    Write-CCDCLog "Disabling legacy cipher suites..." "INFO"
+    Write-SecLog "Disabling legacy cipher suites..." "INFO"
     
     try {
         # Disable weak cipher suites
@@ -188,10 +188,10 @@ function Disable-LegacyCipherSuites {
             Set-ItemProperty -Path $clientPath -Name "Enabled" -Value 0 -Type DWord
         }
         
-        Write-CCDCLog "Legacy cipher suites and protocols disabled" "SUCCESS"
+        Write-SecLog "Legacy cipher suites and protocols disabled" "SUCCESS"
         Update-ChecklistItem -ItemID 28 -Status $true
         
     } catch {
-        Write-CCDCLog "Failed to disable legacy ciphers: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Failed to disable legacy ciphers: $($_.Exception.Message)" "ERROR"
     }
 }

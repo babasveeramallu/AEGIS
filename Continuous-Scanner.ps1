@@ -166,7 +166,7 @@ function Start-ContinuousSecurityScanning {
                 Start-Sleep -Seconds 600
             }
         }
-    } -ArgumentList $Targets, "C:\CCDC-Logs"
+    } -ArgumentList $Targets, "C:\Security-Logs"
     
     # Job 2: System Change Logger (every 3 minutes)
     $changeJob = Start-Job -ScriptBlock {
@@ -226,7 +226,7 @@ function Start-ContinuousSecurityScanning {
                 Start-Sleep -Seconds 180
             }
         }
-    } -ArgumentList "C:\CCDC-Logs"
+    } -ArgumentList "C:\Security-Logs"
     
     # Job 3: Vulnerability Scanner (every 10 minutes)
     $vulnJob = Start-Job -ScriptBlock {
@@ -272,7 +272,7 @@ function Start-ContinuousSecurityScanning {
                 Start-Sleep -Seconds 600
             }
         }
-    } -ArgumentList "C:\CCDC-Logs"
+    } -ArgumentList "C:\Security-Logs"
     
     $Global:ContinuousScanJobs = @($portScanJob, $changeJob, $vulnJob)
     
@@ -281,7 +281,7 @@ function Start-ContinuousSecurityScanning {
     Write-Host "  System change logging: Every 3 minutes" -ForegroundColor Cyan
     Write-Host "  Vulnerability scans: Every 10 minutes" -ForegroundColor Cyan
     Write-Host "  Monitoring $($Targets.Count) hosts" -ForegroundColor Cyan
-    Write-Host "`nLogs: C:\CCDC-Logs\" -ForegroundColor Yellow
+    Write-Host "`nLogs: C:\Security-Logs\" -ForegroundColor Yellow
     
     # Initial scan
     Write-Host "`nPerforming initial scan..." -ForegroundColor Yellow
@@ -290,7 +290,7 @@ function Start-ContinuousSecurityScanning {
     # Live dashboard loop
     while ($true) {
         # Load latest scan results
-        $resultsFile = "C:\CCDC-Logs\port_scan_results.xml"
+        $resultsFile = "C:\Security-Logs\port_scan_results.xml"
         if (Test-Path $resultsFile) {
             try {
                 $scanData = Import-Clixml $resultsFile
@@ -325,8 +325,8 @@ function Stop-ContinuousSecurityScanning {
 # Auto-start if run directly
 if ($MyInvocation.InvocationName -ne '.') {
     # Create log directory
-    if (!(Test-Path "C:\CCDC-Logs")) {
-        New-Item -Path "C:\CCDC-Logs" -ItemType Directory -Force | Out-Null
+    if (!(Test-Path "C:\Security-Logs")) {
+        New-Item -Path "C:\Security-Logs" -ItemType Directory -Force | Out-Null
     }
     
     try {

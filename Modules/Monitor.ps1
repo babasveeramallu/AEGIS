@@ -6,7 +6,7 @@ $Global:MonitoringJobs = @()
 function Start-MonitoringModule {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting monitoring and logging systems..." "INFO"
+    Write-SecLog "Starting monitoring and logging systems..." "INFO"
     
     try {
         # 1. Event Log Collection
@@ -30,17 +30,17 @@ function Start-MonitoringModule {
         # 7. Splunk Forwarding Check
         Test-SplunkForwarding
         
-        Write-CCDCLog "Monitoring module started successfully" "SUCCESS"
+        Write-SecLog "Monitoring module started successfully" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Error starting monitoring module: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Error starting monitoring module: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Start-EventLogCollection {
     param([PSCustomObject]$SystemProfile)
     
-    Write-CCDCLog "Starting event log collection..." "INFO"
+    Write-SecLog "Starting event log collection..." "INFO"
     
     $eventLogJob = Start-Job -ScriptBlock {
         param($LogPath, $ComputerName)
@@ -94,48 +94,48 @@ function Start-EventLogCollection {
     } -ArgumentList $Global:LogPath, $SystemProfile.ComputerName
     
     $Global:MonitoringJobs += $eventLogJob
-    Write-CCDCLog "Event log collection job started (Job ID: $($eventLogJob.Id))" "SUCCESS"
+    Write-SecLog "Event log collection job started (Job ID: $($eventLogJob.Id))" "SUCCESS"
 }
 
 function Start-SysmonIntegration {
-    Write-CCDCLog "Checking Sysmon integration..." "INFO"
+    Write-SecLog "Checking Sysmon integration..." "INFO"
     
     try {
         # Check if Sysmon is installed
         $sysmonService = Get-Service -Name "Sysmon*" -ErrorAction SilentlyContinue
         
         if ($sysmonService) {
-            Write-CCDCLog "Sysmon detected: $($sysmonService.Name)" "SUCCESS"
+            Write-SecLog "Sysmon detected: $($sysmonService.Name)" "SUCCESS"
             
             # Verify Sysmon is running
             if ($sysmonService.Status -ne "Running") {
                 Start-Service -Name $sysmonService.Name
-                Write-CCDCLog "Started Sysmon service" "SUCCESS"
+                Write-SecLog "Started Sysmon service" "SUCCESS"
             }
             
             # Check Sysmon configuration
             $sysmonConfig = Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -MaxEvents 1 -ErrorAction SilentlyContinue
             if ($sysmonConfig) {
-                Write-CCDCLog "Sysmon logging confirmed" "SUCCESS"
+                Write-SecLog "Sysmon logging confirmed" "SUCCESS"
             }
             
         } else {
-            Write-CCDCLog "Sysmon not installed - consider installing for enhanced monitoring" "WARN"
+            Write-SecLog "Sysmon not installed - consider installing for enhanced monitoring" "WARN"
             
             # Offer to download and install Sysmon
             $sysmonPath = "$env:TEMP\Sysmon.exe"
             if (!(Test-Path $sysmonPath)) {
-                Write-CCDCLog "Sysmon installation would require manual download from Microsoft Sysinternals" "INFO"
+                Write-SecLog "Sysmon installation would require manual download from Microsoft Sysinternals" "INFO"
             }
         }
         
     } catch {
-        Write-CCDCLog "Sysmon integration check failed: $($_.Exception.Message)" "WARN"
+        Write-SecLog "Sysmon integration check failed: $($_.Exception.Message)" "WARN"
     }
 }
 
 function Start-NetworkTrace {
-    Write-CCDCLog "Starting network trace..." "INFO"
+    Write-SecLog "Starting network trace..." "INFO"
     
     try {
         # Start netsh trace for lateral movement detection
@@ -168,15 +168,15 @@ function Start-NetworkTrace {
         } -ArgumentList $traceFile, $Global:LogPath
         
         $Global:MonitoringJobs += $traceJob
-        Write-CCDCLog "Network trace started (Job ID: $($traceJob.Id))" "SUCCESS"
+        Write-SecLog "Network trace started (Job ID: $($traceJob.Id))" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Network trace startup failed: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Network trace startup failed: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Start-TimeDriftMonitoring {
-    Write-CCDCLog "Starting time drift monitoring..." "INFO"
+    Write-SecLog "Starting time drift monitoring..." "INFO"
     
     $timeDriftJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -224,11 +224,11 @@ function Start-TimeDriftMonitoring {
     } -ArgumentList $Global:LogPath
     
     $Global:MonitoringJobs += $timeDriftJob
-    Write-CCDCLog "Time drift monitoring started (Job ID: $($timeDriftJob.Id))" "SUCCESS"
+    Write-SecLog "Time drift monitoring started (Job ID: $($timeDriftJob.Id))" "SUCCESS"
 }
 
 function Start-CertificateMonitoring {
-    Write-CCDCLog "Starting certificate monitoring..." "INFO"
+    Write-SecLog "Starting certificate monitoring..." "INFO"
     
     $certMonitorJob = Start-Job -ScriptBlock {
         param($LogPath)
@@ -283,11 +283,11 @@ function Start-CertificateMonitoring {
     } -ArgumentList $Global:LogPath
     
     $Global:MonitoringJobs += $certMonitorJob
-    Write-CCDCLog "Certificate monitoring started (Job ID: $($certMonitorJob.Id))" "SUCCESS"
+    Write-SecLog "Certificate monitoring started (Job ID: $($certMonitorJob.Id))" "SUCCESS"
 }
 
 function Start-DefenderTamperingDetection {
-    Write-CCDCLog "Starting Defender tampering detection..." "INFO"
+    Write-SecLog "Starting Defender tampering detection..." "INFO"
     
     try {
         # Get baseline Defender configuration
@@ -344,15 +344,15 @@ function Start-DefenderTamperingDetection {
         } -ArgumentList $Global:LogPath, "$Global:LogPath\defender_baseline.xml"
         
         $Global:MonitoringJobs += $defenderMonitorJob
-        Write-CCDCLog "Defender tampering detection started (Job ID: $($defenderMonitorJob.Id))" "SUCCESS"
+        Write-SecLog "Defender tampering detection started (Job ID: $($defenderMonitorJob.Id))" "SUCCESS"
         
     } catch {
-        Write-CCDCLog "Defender tampering detection failed to start: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Defender tampering detection failed to start: $($_.Exception.Message)" "ERROR"
     }
 }
 
 function Test-SplunkForwarding {
-    Write-CCDCLog "Checking Splunk Universal Forwarder..." "INFO"
+    Write-SecLog "Checking Splunk Universal Forwarder..." "INFO"
     
     try {
         # Check for Splunk Universal Forwarder
@@ -360,46 +360,46 @@ function Test-SplunkForwarding {
         
         if ($splunkService) {
             if ($splunkService.Status -eq "Running") {
-                Write-CCDCLog "Splunk Universal Forwarder is running" "SUCCESS"
+                Write-SecLog "Splunk Universal Forwarder is running" "SUCCESS"
             } else {
-                Write-CCDCLog "Splunk Universal Forwarder found but not running" "WARN"
+                Write-SecLog "Splunk Universal Forwarder found but not running" "WARN"
                 try {
                     Start-Service -Name "SplunkForwarder"
-                    Write-CCDCLog "Started Splunk Universal Forwarder" "SUCCESS"
+                    Write-SecLog "Started Splunk Universal Forwarder" "SUCCESS"
                 } catch {
-                    Write-CCDCLog "Failed to start Splunk Universal Forwarder: $($_.Exception.Message)" "ERROR"
+                    Write-SecLog "Failed to start Splunk Universal Forwarder: $($_.Exception.Message)" "ERROR"
                 }
             }
         } else {
-            Write-CCDCLog "Splunk Universal Forwarder not found" "INFO"
+            Write-SecLog "Splunk Universal Forwarder not found" "INFO"
         }
         
     } catch {
-        Write-CCDCLog "Splunk forwarder check failed: $($_.Exception.Message)" "WARN"
+        Write-SecLog "Splunk forwarder check failed: $($_.Exception.Message)" "WARN"
     }
 }
 
 function Stop-MonitoringModule {
-    Write-CCDCLog "Stopping monitoring jobs..." "INFO"
+    Write-SecLog "Stopping monitoring jobs..." "INFO"
     
     foreach ($job in $Global:MonitoringJobs) {
         try {
             Stop-Job -Job $job -ErrorAction SilentlyContinue
             Remove-Job -Job $job -ErrorAction SilentlyContinue
-            Write-CCDCLog "Stopped monitoring job: $($job.Id)" "INFO"
+            Write-SecLog "Stopped monitoring job: $($job.Id)" "INFO"
         } catch {
-            Write-CCDCLog "Error stopping job $($job.Id): $($_.Exception.Message)" "WARN"
+            Write-SecLog "Error stopping job $($job.Id): $($_.Exception.Message)" "WARN"
         }
     }
     
     # Stop network trace
     try {
         netsh trace stop 2>$null
-        Write-CCDCLog "Network trace stopped" "INFO"
+        Write-SecLog "Network trace stopped" "INFO"
     } catch {
-        Write-CCDCLog "Error stopping network trace: $($_.Exception.Message)" "WARN"
+        Write-SecLog "Error stopping network trace: $($_.Exception.Message)" "WARN"
     }
     
     $Global:MonitoringJobs = @()
-    Write-CCDCLog "Monitoring module stopped" "SUCCESS"
+    Write-SecLog "Monitoring module stopped" "SUCCESS"
 }

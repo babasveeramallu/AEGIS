@@ -1,7 +1,7 @@
 # Quick Test Script - Run this to validate basic functionality
 # This tests core components without making system changes
 
-Write-Host "=== CCDC TOOL QUICK TEST ===" -ForegroundColor Cyan
+Write-Host "=== SecOps TOOL QUICK TEST ===" -ForegroundColor Cyan
 Write-Host "Testing basic functionality without system modifications`n" -ForegroundColor White
 
 $testResults = @{
@@ -217,7 +217,7 @@ if ($testResults.Failed -gt 0) {
         Write-Host "  -> Check network connectivity" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "All tests passed! System ready for CCDC tool deployment." -ForegroundColor Green
+    Write-Host "All tests passed! System ready for SecOps tool deployment." -ForegroundColor Green
 }
 
 Write-Host "`nTest completed at $(Get-Date)" -ForegroundColor Gray

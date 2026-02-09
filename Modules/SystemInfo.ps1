@@ -3,7 +3,7 @@
 # the identification engine runs a series of lightweight probes and produces a structured system profile.
 
 function Invoke-SystemIdentification {
-    Write-CCDCLog "Starting system identification probes..." "INFO"
+    Write-SecLog "Starting system identification probes..." "INFO"
     
     $profile = [PSCustomObject]@{
         ComputerName = $env:COMPUTERNAME
@@ -27,41 +27,41 @@ function Invoke-SystemIdentification {
         # Signal 1: OS Version
         $osInfo = Get-CimInstance Win32_OperatingSystem
         $profile.OS = "$($osInfo.Caption) (Build $($osInfo.BuildNumber))"
-        Write-CCDCLog "OS Detected: $($profile.OS)" "INFO"
+        Write-SecLog "OS Detected: $($profile.OS)" "INFO"
         
         # Signal 2: Computer Name Analysis
-        Write-CCDCLog "Computer Name: $($profile.ComputerName)" "INFO"
+        Write-SecLog "Computer Name: $($profile.ComputerName)" "INFO"
         
         # Signal 3: Installed Roles (Server only)
         if ($osInfo.ProductType -ne 1) { # Not workstation
             try {
                 $windowsFeatures = Get-WindowsFeature | Where-Object { $_.InstallState -eq "Installed" }
                 $profile.Roles = $windowsFeatures | Select-Object -ExpandProperty Name
-                Write-CCDCLog "Installed Roles: $($profile.Roles -join ', ')" "INFO"
+                Write-SecLog "Installed Roles: $($profile.Roles -join ', ')" "INFO"
             } catch {
-                Write-CCDCLog "Could not query Windows Features (likely not Server OS)" "WARN"
+                Write-SecLog "Could not query Windows Features (likely not Server OS)" "WARN"
             }
         } else {
             $profile.IsWorkstation = $true
-            Write-CCDCLog "Workstation OS detected" "INFO"
+            Write-SecLog "Workstation OS detected" "INFO"
         }
         
         # Signal 4: Listening Ports
         $listeningPorts = Get-NetTCPConnection | Where-Object { $_.State -eq "Listen" } | Select-Object -ExpandProperty LocalPort | Sort-Object -Unique
         $profile.ListenPorts = $listeningPorts
-        Write-CCDCLog "Listening Ports: $($listeningPorts -join ', ')" "INFO"
+        Write-SecLog "Listening Ports: $($listeningPorts -join ', ')" "INFO"
         
         # Signal 5: Running Services
         $runningServices = Get-Service | Where-Object { $_.Status -eq "Running" } | Select-Object -ExpandProperty Name
         $profile.Services = $runningServices
-        Write-CCDCLog "Running Services Count: $($runningServices.Count)" "INFO"
+        Write-SecLog "Running Services Count: $($runningServices.Count)" "INFO"
         
         # Signal 6: AD Membership Check
         try {
             $adInfo = Get-ADComputer -Identity $env:COMPUTERNAME -ErrorAction Stop
-            Write-CCDCLog "AD Member: $($adInfo.DistinguishedName)" "INFO"
+            Write-SecLog "AD Member: $($adInfo.DistinguishedName)" "INFO"
         } catch {
-            Write-CCDCLog "Not domain-joined or AD module not available" "INFO"
+            Write-SecLog "Not domain-joined or AD module not available" "INFO"
         }
         
         # Signal 7: IIS Installation
@@ -71,17 +71,17 @@ function Invoke-SystemIdentification {
                 Import-Module WebAdministration -ErrorAction SilentlyContinue
                 $websites = Get-Website -ErrorAction SilentlyContinue
                 if ($websites) {
-                    Write-CCDCLog "IIS Websites: $($websites.Count)" "INFO"
+                    Write-SecLog "IIS Websites: $($websites.Count)" "INFO"
                 }
             } catch {
-                Write-CCDCLog "IIS detected but WebAdministration module not available" "WARN"
+                Write-SecLog "IIS detected but WebAdministration module not available" "WARN"
             }
         }
         
         # Signal 8: FTP Installation
         if ($runningServices -contains "FTPSVC") {
             $profile.FTP = $true
-            Write-CCDCLog "FTP Service detected" "INFO"
+            Write-SecLog "FTP Service detected" "INFO"
         }
         
         # Signal 9: Time Source
@@ -89,10 +89,10 @@ function Invoke-SystemIdentification {
             $timeStatus = w32tm /query /status 2>$null
             if ($timeStatus) {
                 $profile.TimeSource = ($timeStatus | Select-String "Source:").ToString().Split(":")[1].Trim()
-                Write-CCDCLog "Time Source: $($profile.TimeSource)" "INFO"
+                Write-SecLog "Time Source: $($profile.TimeSource)" "INFO"
             }
         } catch {
-            Write-CCDCLog "Could not query time source" "WARN"
+            Write-SecLog "Could not query time source" "WARN"
         }
         
         # Signal 10: Certificate Store
@@ -105,9 +105,9 @@ function Invoke-SystemIdentification {
                     Thumbprint = $_.Thumbprint
                 }
             }
-            Write-CCDCLog "Valid Certificates: $($certs.Count)" "INFO"
+            Write-SecLog "Valid Certificates: $($certs.Count)" "INFO"
         } catch {
-            Write-CCDCLog "Could not query certificate store" "WARN"
+            Write-SecLog "Could not query certificate store" "WARN"
         }
         
         # Role Detection Logic
@@ -116,11 +116,11 @@ function Invoke-SystemIdentification {
         # Scoring Services Detection
         $profile.ScoringServices = Get-ScoringServices -Profile $profile
         
-        Write-CCDCLog "System identification complete. Role: $($profile.DetectedRole), Confidence: $($profile.Confidence)" "SUCCESS"
+        Write-SecLog "System identification complete. Role: $($profile.DetectedRole), Confidence: $($profile.Confidence)" "SUCCESS"
         return $profile
         
     } catch {
-        Write-CCDCLog "Error during system identification: $($_.Exception.Message)" "ERROR"
+        Write-SecLog "Error during system identification: $($_.Exception.Message)" "ERROR"
         return $profile
     }
 }
