@@ -19,11 +19,15 @@ param(
     [switch]$CheckOnly
 )
 
-. ".\Config\Configuration.ps1"
-
 function Write-DeployLog {
     param([string]$Message, [string]$Level = "INFO")
-    Write-SecLog $Message $Level
+    $timestamp = Get-Date -Format "HH:mm:ss"
+    switch ($Level) {
+        "INFO"    { Write-Host "[$timestamp] [INFO] $Message" -ForegroundColor White }
+        "WARN"    { Write-Host "[$timestamp] [WARN] $Message" -ForegroundColor Yellow }
+        "ERROR"   { Write-Host "[$timestamp] [ERROR] $Message" -ForegroundColor Red }
+        "SUCCESS" { Write-Host "[$timestamp] [SUCCESS] $Message" -ForegroundColor Green }
+    }
 }
 
 function Test-Prerequisites {
