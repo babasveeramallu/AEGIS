@@ -27,6 +27,7 @@ param(
 
 # Import modules
 $ModulePath = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$ModulePath\Config\Configuration.ps1"
 Get-ChildItem "$ModulePath\Modules\*.ps1" | ForEach-Object { . $_.FullName }
 
 # Initialize globals
