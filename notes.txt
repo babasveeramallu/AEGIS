@@ -39,3 +39,5 @@ Never reveal true capabilities to competitors or observers.
 
 Tool Version: SecOps 2026 v1.0
 Classification: RESTRICTED - INTERNAL USE ONLY
+
+wget --content-disposition "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-arm64" -O vscode.deb
